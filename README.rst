@@ -7,7 +7,7 @@ devtools_shorthand_sql
         :target: https://pypi.python.org/pypi/devtools_shorthand_sql
 
 .. image:: https://img.shields.io/travis/HaeckelK/devtools_shorthand_sql.svg
-        :target: https://travis-ci.com/HaeckelK/devtools_shorthand_sql
+        :target: https://travis-ci.org/HaeckelK/devtools_shorthand_sql
 
 .. image:: https://readthedocs.org/projects/devtools-shorthand-sql/badge/?version=latest
         :target: https://devtools-shorthand-sql.readthedocs.io/en/latest/?badge=latest
