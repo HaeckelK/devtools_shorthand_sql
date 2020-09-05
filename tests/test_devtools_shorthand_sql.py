@@ -5,7 +5,7 @@
 import pytest
 
 
-from devtools_shorthand_sql import devtools_shorthand_sql
+from devtools_shorthand_sql import core
 
 
 @pytest.fixture
