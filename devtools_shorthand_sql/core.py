@@ -57,9 +57,8 @@ class PostgresSQLBuilder(SQLBuilder):
     value_char = '%s' 
 
 
-def main(filename: str):
+def main(filename: str, sql_type: str):
     content = load_instructions_file(filename)
-    sql_type = 'sqlite'
 
     # get separate instructions
     raw_instructions = content.split('#')
