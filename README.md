@@ -18,8 +18,7 @@ Aid for writing boilerplate python code for SQL work, including creation of tabl
 
 - TODO
 
-Requirements
-------------
+## Requirements
 
 You need Python 3.6 or later to run devtools_shorthand_sql.
 
@@ -59,8 +58,8 @@ Python function for data insertion:
 ```python
 def insert_photo(size: int, filename: str, date_taken: int) -> int:
     params = (None, size, filename, date_taken)
-    id = YOUR_CONNECTOR_EXECUTOR.("""INSERT INTO photo (id, size, filename, date_taken) VALUES(?,?,?,?);""",
-                                  params)
+    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (id, size, filename, date_taken) VALUES(?,?,?,?);""",
+                                 params)
     return id
 ```
 
