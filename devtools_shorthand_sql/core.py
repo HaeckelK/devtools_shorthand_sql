@@ -100,6 +100,10 @@ def main(filename: str, sql_type: str):
 
         table_sql = builder.create_table_statement()
         insert_sql, params, definition, function_name = builder.create_insert_statement()
+
+        insert_function = f'{definition}\n    params = {params}\n    id = YOUR_CONNECTOR_EXECUTOR("""{insert_sql}""",\n\
+                                 params)\n    return id'
+
         test_function = builder.create_test(function_name)
 
         print('\n')
@@ -108,6 +112,8 @@ def main(filename: str, sql_type: str):
         print(definition)
         print(insert_sql)
         print(params)
+        print('\n')
+        print(insert_function)
         print('\n')
         print(test_function)
     return
