@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Haeckel K <haeckelk@haeckelk>
+* Haeckel K <haeckelk.github@gmail.com>
 
 Contributors
 ------------
