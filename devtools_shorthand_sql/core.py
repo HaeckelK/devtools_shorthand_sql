@@ -31,12 +31,12 @@ class SQLBuilder():
         # TODO is this a valid def name?
         function_name = f'insert_{self.table_name.lower()}'
         field_names = ', '.join([field.name for field in self.fields])
-        arguments = ', '.join([field.name for field in self.fields[1:]])
+        arguments = ', '.join([field.arg for field in self.fields[1:]])
         values = ','.join([self.value_char]*len(self.fields))
         sql = f"""INSERT INTO {self.table_name} ({field_names}) VALUES({values});"""
         # TODO None is for the id field which might not be present
         params = '(None, ' + arguments + ')'
-        definition = f'def {function_name}({arguments}):'
+        definition = f'def {function_name}({arguments}): -> None'
         return sql, params, definition, function_name
 
     def create_test(self, function_name):
