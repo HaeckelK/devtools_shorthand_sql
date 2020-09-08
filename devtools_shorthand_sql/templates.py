@@ -24,6 +24,18 @@ def {function_name}({arguments}) -> None:
     return text
 
 
+def insert_with_id_test(function_name: str, expected: str, table_name: str, kwargs: str):
+    text = f'''
+def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
+    expected = {expected}
+    new_id = YOUR_MODULE.{function_name}({kwargs})
+    result = YOUR_CONNECTOR_QUERY('SELECT * FROM {table_name}').fetchall()[0]
+    assert result == expected
+    assert new_id == 1
+'''
+    return text
+
+
 # create table statement
 '''
 CREATE TABLE IF NOT EXISTS photo (
@@ -32,25 +44,6 @@ size int,
 filename text,
 date_taken int
 );
-'''
-
-# unit test insert template with id
-'''
-def test_insert_photo(YOUR_CLEAN_DB_FIXTURE):
-    expected = (1, 999, '123fakestreet', 999)
-    new_id = YOUR_MODULE.insert_photo(size=999, filename="123fakestreet", date_taken=999)
-    result = YOUR_CONNECTOR_QUERY('SELECT * FROM photo').fetchall()[0]
-    assert result == expected
-    assert new_id == 1
-'''
-
-# insert template without id
-'''
-def insert_photo(size: int, filename: str, date_taken: int) -> int:
-    params = (size, filename, date_taken)
-    YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (size, filename, date_taken) VALUES(?,?,?,?);""",
-                            params)
-    return
 '''
 
 # unit test insert template without id

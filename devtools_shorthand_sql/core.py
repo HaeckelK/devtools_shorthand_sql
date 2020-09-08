@@ -45,6 +45,7 @@ def get_field(field_name, field_data_type):
 
 # TODO this is a function builder, which has a SQL generator attached.
 # TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
+# TODO sort of dependency with templates
 class SQLBuilder():
     value_char = '?'
     def __init__(self, table_name: str, fields: List[Field]):
@@ -72,6 +73,16 @@ class SQLBuilder():
     def function_name_stem(self):
         return self.table_name.lower()
 
+    @property
+    def kwargs(self):
+        kwargs = []
+        for field in self.fields:
+            if isinstance(field, IDField):
+                continue
+            kwarg = field.name + '=' + str(field.kwarg)
+            kwargs.append(kwarg)
+        return ', '.join(kwargs)
+
     def create_table_statement(self) -> str:
         sql_lines = ''
         for field in self.fields:
@@ -95,15 +106,15 @@ class SQLBuilder():
                                                       self.values, self.field_names)
         return insert_function
 
+    def create_insert_function_with_id_test(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        expected = tuple(field.test_default for field in self.fields)
+        function = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        return function
+
     def create_test(self):
         function_name = f'insert_{self.function_name_stem}'
-        expected = tuple([field.test_default for field in self.fields])
-        kwargs = []
-        for field in self.fields:
-            if isinstance(field, IDField):
-                continue
-            kwarg = field.name + '=' + str(field.kwarg)
-            kwargs.append(kwarg)
+
         arguments = ', '.join(kwargs)
         sql = f"'SELECT * FROM {self.table_name}'"
         code = f"""def test_{function_name}():\n\
@@ -157,7 +168,7 @@ def main(filename: str, sql_type: str):
         insert_function = builder.create_insert_function_with_id()
         insert_function_without_id = builder.create_insert_function_without_id()
 
-        test_function = builder.create_test()
+        test_insert_function = builder.create_insert_function_with_id_test()
 
         print('\n')
         print(table_sql)
@@ -166,5 +177,5 @@ def main(filename: str, sql_type: str):
         print('\n')
         print(insert_function_without_id)
         print('\n')
-        print(test_function)
+        print(test_insert_function)
     return
