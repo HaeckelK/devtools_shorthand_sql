@@ -50,3 +50,7 @@ class BlobField(Field):
 class IDField(Field):
     test_default = 1
     type_hint = 'int'
+
+    @property
+    def arg(self):
+        return ''

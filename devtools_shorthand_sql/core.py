@@ -11,6 +11,37 @@ def load_instructions_file(filename: str) -> str:
     return contents
 
 
+def map_raw_field_data_type(raw_field_data_type):
+    # TODO mapping non sqlite to sqlite
+    value = raw_field_data_type.upper()
+    mapping = {'INT': 'INT',
+               'INTEGER': 'INT',
+               'INT': 'INT',
+               'INTEGER': 'INT',
+               'TINYINT': 'INT',
+               'SMALLINT': 'INT',
+               'MEDIUMINT': 'INT',
+               'BIGINT': 'INT',
+               'UNSIGNED BIG INT': 'INT',
+               'INT2': 'INT',
+               'INT8': 'INT',
+               'ID': 'INTEGER PRIMARY KEY',
+               'INTEGER PRIMARY KEY': 'INTEGER PRIMARY KEY',
+               'TEXT': 'TEXT'}
+    mapped = mapping[value]
+    return mapped
+
+
+# TODO rename
+def get_field(field_name, field_data_type):
+    mapping = {'INT': IntegerField,
+               'TEXT': TextField,
+               'INTEGER PRIMARY KEY': IDField}
+    f = mapping.get(field_data_type, Field)
+    field = f(field_name, field_data_type)
+    return field
+
+
 class SQLBuilder():
     value_char = '?'
     def __init__(self, table_name: str, fields: List[Field]):
@@ -31,7 +62,7 @@ class SQLBuilder():
         # TODO is this a valid def name?
         function_name = f'insert_{self.table_name.lower()}'
         field_names = ', '.join([field.name for field in self.fields])
-        arguments = ', '.join([field.arg for field in self.fields[1:]])
+        arguments = ', '.join([field.arg for field in self.fields if field.arg != ''])
         values = ','.join([self.value_char]*len(self.fields))
         sql = f"""INSERT INTO {self.table_name} ({field_names}) VALUES({values});"""
         # TODO None is for the id field which might not be present
@@ -79,16 +110,14 @@ def main(filename: str, sql_type: str):
             continue
         table_name = lines[0].replace('table', '').strip()
         raw_fields = [x.split(' ') for x in lines[1:]]
-        fields = [IDField('id', 'INTEGER PRIMARY KEY')]
+        fields = []
         for raw_field in raw_fields:
             if len(raw_field) != 2:
                 continue
-            field_type = raw_field[1]
-            field = Field(raw_field[0], field_type)
-            if field_type == 'int':
-                field = IntegerField(raw_field[0], field_type)
-            if field_type == 'text':
-                field = TextField(raw_field[0], field_type)
+            raw_field_data_type = raw_field[1]
+            field_name = raw_field[0]
+            field_data_type = map_raw_field_data_type(raw_field_data_type)
+            field = get_field(field_name, field_data_type)
             fields.append(field)
         for field in fields:
             field.lowercase()
