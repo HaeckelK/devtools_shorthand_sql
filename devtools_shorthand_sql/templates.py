@@ -45,14 +45,6 @@ def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     assert result == expected
 '''
     return text
-# unit test insert template without id
-'''
-def test_insert_photo(YOUR_CLEAN_DB_FIXTURE):
-    expected = (999, '123fakestreet', 999)
-    YOUR_MODULE.insert_photo(size=999, filename="123fakestreet", date_taken=999)
-    result = YOUR_CONNECTOR_QUERY('SELECT * FROM photo').fetchall()[0]
-    assert result == expected
-'''
 
 # create table statement
 '''
