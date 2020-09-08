@@ -112,16 +112,11 @@ class SQLBuilder():
         function = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
         return function
 
-    def create_test(self):
+    def create_insert_function_without_id_test(self) -> str:
         function_name = f'insert_{self.function_name_stem}'
-
-        arguments = ', '.join(kwargs)
-        sql = f"'SELECT * FROM {self.table_name}'"
-        code = f"""def test_{function_name}():\n\
-    expected = {expected}
-    YOUR_MODULE.{function_name}({arguments})\n\
-    result = YOUR_CONNECTOR_QUERY({sql}).fetchall()[0]\n    assert result == expected"""
-        return code
+        expected = tuple(field.test_default for field in self.fields)
+        function = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        return function
 
 
 class PostgresSQLBuilder(SQLBuilder):
@@ -169,6 +164,7 @@ def main(filename: str, sql_type: str):
         insert_function_without_id = builder.create_insert_function_without_id()
 
         test_insert_function = builder.create_insert_function_with_id_test()
+        test_insert_function_without_id = builder.create_insert_function_without_id_test()
 
         print('\n')
         print(table_sql)
@@ -178,4 +174,6 @@ def main(filename: str, sql_type: str):
         print(insert_function_without_id)
         print('\n')
         print(test_insert_function)
+        print('\n')
+        print(test_insert_function_without_id)
     return
