@@ -43,6 +43,8 @@ def get_field(field_name, field_data_type):
     return field
 
 
+# TODO this is a function builder, which has a SQL generator attached.
+# TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
 class SQLBuilder():
     value_char = '?'
     def __init__(self, table_name: str, fields: List[Field]):
@@ -79,11 +81,18 @@ class SQLBuilder():
         sql = f"""CREATE TABLE IF NOT EXISTS {self.table_name} (\n{sql_lines}\n);"""
         return sql
 
-    def create_insert_function(self) -> str:
+    def create_insert_function_with_id(self) -> str:
         function_name = f'insert_{self.function_name_stem}'
         insert_function = templates.insert_with_id(function_name, self.arguments,
                                                    self.params, self.table_name,
                                                    self.values, self.field_names)
+        return insert_function
+
+    def create_insert_function_without_id(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        insert_function = templates.insert_without_id(function_name, self.arguments,
+                                                      self.params, self.table_name,
+                                                      self.values, self.field_names)
         return insert_function
 
     def create_test(self):
@@ -145,7 +154,8 @@ def main(filename: str, sql_type: str):
             builder = SQLBuilder(table_name, fields)
 
         table_sql = builder.create_table_statement()
-        insert_function = builder.create_insert_function()
+        insert_function = builder.create_insert_function_with_id()
+        insert_function_without_id = builder.create_insert_function_without_id()
 
         test_function = builder.create_test()
 
@@ -153,6 +163,8 @@ def main(filename: str, sql_type: str):
         print(table_sql)
         print('\n')
         print(insert_function)
+        print('\n')
+        print(insert_function_without_id)
         print('\n')
         print(test_function)
     return
