@@ -3,6 +3,7 @@ import argparse
 from typing import List
 
 from devtools_shorthand_sql.fields import Field, BlobField, IDField, IntegerField, RealField, TextField
+import devtools_shorthand_sql.templates as templates
 
 
 def load_instructions_file(filename: str) -> str:
@@ -42,12 +43,45 @@ def get_field(field_name, field_data_type):
     return field
 
 
+# TODO this is a function builder, which has a SQL generator attached.
+# TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
+# TODO sort of dependency with templates
 class SQLBuilder():
     value_char = '?'
     def __init__(self, table_name: str, fields: List[Field]):
         self.table_name = table_name
         self.fields = fields
         return
+
+    @property
+    def arguments(self):
+        return ', '.join([field.arg for field in self.fields if field.arg != ''])
+
+    @property
+    def field_names(self):
+        return ', '.join([field.name for field in self.fields])
+
+    @property
+    def params(self):
+        return ', '.join([field.param for field in self.fields])
+
+    @property
+    def values(self):
+        return ','.join([self.value_char]*len(self.fields))
+
+    @property
+    def function_name_stem(self):
+        return self.table_name.lower()
+
+    @property
+    def kwargs(self):
+        kwargs = []
+        for field in self.fields:
+            if isinstance(field, IDField):
+                continue
+            kwarg = field.name + '=' + str(field.kwarg)
+            kwargs.append(kwarg)
+        return ', '.join(kwargs)
 
     def create_table_statement(self) -> str:
         sql_lines = ''
@@ -58,33 +92,31 @@ class SQLBuilder():
         sql = f"""CREATE TABLE IF NOT EXISTS {self.table_name} (\n{sql_lines}\n);"""
         return sql
 
-    def create_insert_statement(self) -> str:
-        # TODO is this a valid def name?
-        function_name = f'insert_{self.table_name.lower()}'
-        field_names = ', '.join([field.name for field in self.fields])
-        arguments = ', '.join([field.arg for field in self.fields if field.arg != ''])
-        values = ','.join([self.value_char]*len(self.fields))
-        sql = f"""INSERT INTO {self.table_name} ({field_names}) VALUES({values});"""
-        # TODO None is for the id field which might not be present
-        params = '(' + ', '.join([field.param for field in self.fields]) + ')'
-        definition = f'def {function_name}({arguments}): -> None'
-        return sql, params, definition, function_name
+    def create_insert_function_with_id(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        insert_function = templates.insert_with_id(function_name, self.arguments,
+                                                   self.params, self.table_name,
+                                                   self.values, self.field_names)
+        return insert_function
 
-    def create_test(self, function_name):
-        expected = tuple([field.test_default for field in self.fields])
-        kwargs = []
-        for field in self.fields:
-            if isinstance(field, IDField):
-                continue
-            kwarg = field.name + '=' + str(field.kwarg)
-            kwargs.append(kwarg)
-        arguments = ', '.join(kwargs)
-        sql = f"'SELECT * FROM {self.table_name}'"
-        code = f"""def test_{function_name}():\n\
-    expected = {expected}
-    YOUR_MODULE.{function_name}({arguments})\n\
-    result = YOUR_CONNECTOR_QUERY({sql}).fetchall()[0]\n    assert result == expected"""
-        return code
+    def create_insert_function_without_id(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        insert_function = templates.insert_without_id(function_name, self.arguments,
+                                                      self.params, self.table_name,
+                                                      self.values, self.field_names)
+        return insert_function
+
+    def create_insert_function_with_id_test(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        expected = tuple(field.test_default for field in self.fields)
+        function = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        return function
+
+    def create_insert_function_without_id_test(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        expected = tuple(field.test_default for field in self.fields)
+        function = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        return function
 
 
 class PostgresSQLBuilder(SQLBuilder):
@@ -128,17 +160,20 @@ def main(filename: str, sql_type: str):
             builder = SQLBuilder(table_name, fields)
 
         table_sql = builder.create_table_statement()
-        insert_sql, params, definition, function_name = builder.create_insert_statement()
+        insert_function = builder.create_insert_function_with_id()
+        insert_function_without_id = builder.create_insert_function_without_id()
 
-        insert_function = f'{definition}\n    params = {params}\n    id = YOUR_CONNECTOR_EXECUTOR("""{insert_sql}""",\n\
-                                 params)\n    return id'
-
-        test_function = builder.create_test(function_name)
+        test_insert_function = builder.create_insert_function_with_id_test()
+        test_insert_function_without_id = builder.create_insert_function_without_id_test()
 
         print('\n')
         print(table_sql)
         print('\n')
         print(insert_function)
         print('\n')
-        print(test_function)
+        print(insert_function_without_id)
+        print('\n')
+        print(test_insert_function)
+        print('\n')
+        print(test_insert_function_without_id)
     return

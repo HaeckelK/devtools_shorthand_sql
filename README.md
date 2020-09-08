@@ -34,6 +34,7 @@ pip install --upgrade devtools_shorthand_sql
 Create a shorthand sql file e.g. shorthand.txt.
 ```
 # table photo
+id id
 size int
 filename text
 date_taken int
@@ -67,7 +68,8 @@ Python function for unit testing:
 ```python
 def test_insert_photo(YOUR_CLEAN_DB_FIXTURE):
     expected = (1, 999, '123fakestreet', 999)
-    YOUR_MODULE.insert_photo(size=999, filename="123fakestreet", date_taken=999)
+    new_id = YOUR_MODULE.insert_photo(size=999, filename="123fakestreet", date_taken=999)
     result = YOUR_CONNECTOR_QUERY('SELECT * FROM photo').fetchall()[0]
     assert result == expected
+    assert new_id == 1
 ```
