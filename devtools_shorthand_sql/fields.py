@@ -18,6 +18,10 @@ class Field():
     def arg(self):
         return self.name + ': ' + str(self.type_hint)
 
+    @property
+    def param(self):
+        return self.name
+
     def lowercase(self):
         self.name = self.name.lower()
         return
@@ -50,3 +54,11 @@ class BlobField(Field):
 class IDField(Field):
     test_default = 1
     type_hint = 'int'
+
+    @property
+    def arg(self):
+        return ''
+
+    @property
+    def param(self):
+        return 'None'
