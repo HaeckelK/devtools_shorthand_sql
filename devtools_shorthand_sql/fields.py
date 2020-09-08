@@ -18,6 +18,10 @@ class Field():
     def arg(self):
         return self.name + ': ' + str(self.type_hint)
 
+    @property
+    def param(self):
+        return self.name
+
     def lowercase(self):
         self.name = self.name.lower()
         return
@@ -54,3 +58,7 @@ class IDField(Field):
     @property
     def arg(self):
         return ''
+
+    @property
+    def param(self):
+        return 'None'

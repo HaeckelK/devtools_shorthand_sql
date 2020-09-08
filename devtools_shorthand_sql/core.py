@@ -66,7 +66,7 @@ class SQLBuilder():
         values = ','.join([self.value_char]*len(self.fields))
         sql = f"""INSERT INTO {self.table_name} ({field_names}) VALUES({values});"""
         # TODO None is for the id field which might not be present
-        params = '(None, ' + ', '.join([field.name for field in self.fields[1:]]) + ')'
+        params = '(' + ', '.join([field.param for field in self.fields]) + ')'
         definition = f'def {function_name}({arguments}): -> None'
         return sql, params, definition, function_name
 
