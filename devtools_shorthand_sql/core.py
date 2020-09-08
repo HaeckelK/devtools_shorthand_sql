@@ -50,6 +50,26 @@ class SQLBuilder():
         self.fields = fields
         return
 
+    @property
+    def arguments(self):
+        return ', '.join([field.arg for field in self.fields if field.arg != ''])
+
+    @property
+    def field_names(self):
+        return ', '.join([field.name for field in self.fields])
+
+    @property
+    def params(self):
+        return ', '.join([field.param for field in self.fields])
+
+    @property
+    def values(self):
+        return ','.join([self.value_char]*len(self.fields))
+
+    @property
+    def function_name_stem(self):
+        return self.table_name.lower()
+
     def create_table_statement(self) -> str:
         sql_lines = ''
         for field in self.fields:
@@ -59,19 +79,15 @@ class SQLBuilder():
         sql = f"""CREATE TABLE IF NOT EXISTS {self.table_name} (\n{sql_lines}\n);"""
         return sql
 
-    def create_insert_statement(self) -> str:
-        # TODO is this a valid def name?
-        function_name = f'insert_{self.table_name.lower()}'
-        field_names = ', '.join([field.name for field in self.fields])
-        arguments = ', '.join([field.arg for field in self.fields if field.arg != ''])
-        values = ','.join([self.value_char]*len(self.fields))
-        sql = f"""INSERT INTO {self.table_name} ({field_names}) VALUES({values});"""
-        # TODO None is for the id field which might not be present
-        params = ', '.join([field.param for field in self.fields])
-        definition = f'def {function_name}({arguments}): -> None'
-        return sql, params, definition, function_name, arguments, values, field_names
+    def create_insert_function(self) -> str:
+        function_name = f'insert_{self.function_name_stem}'
+        insert_function = templates.insert_with_id(function_name, self.arguments,
+                                                   self.params, self.table_name,
+                                                   self.values, self.field_names)
+        return insert_function
 
-    def create_test(self, function_name):
+    def create_test(self):
+        function_name = f'insert_{self.function_name_stem}'
         expected = tuple([field.test_default for field in self.fields])
         kwargs = []
         for field in self.fields:
@@ -129,10 +145,9 @@ def main(filename: str, sql_type: str):
             builder = SQLBuilder(table_name, fields)
 
         table_sql = builder.create_table_statement()
-        insert_sql, params, definition, function_name, arguments, values, field_names = builder.create_insert_statement()
-        insert_function = templates.insert_with_id(function_name, arguments, params, table_name, values, field_names)
+        insert_function = builder.create_insert_function()
 
-        test_function = builder.create_test(function_name)
+        test_function = builder.create_test()
 
         print('\n')
         print(table_sql)
