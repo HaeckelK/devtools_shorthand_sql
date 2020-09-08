@@ -3,6 +3,7 @@ import argparse
 from typing import List
 
 from devtools_shorthand_sql.fields import Field, BlobField, IDField, IntegerField, RealField, TextField
+import devtools_shorthand_sql.templates as templates
 
 
 def load_instructions_file(filename: str) -> str:
@@ -66,9 +67,9 @@ class SQLBuilder():
         values = ','.join([self.value_char]*len(self.fields))
         sql = f"""INSERT INTO {self.table_name} ({field_names}) VALUES({values});"""
         # TODO None is for the id field which might not be present
-        params = '(' + ', '.join([field.param for field in self.fields]) + ')'
+        params = ', '.join([field.param for field in self.fields])
         definition = f'def {function_name}({arguments}): -> None'
-        return sql, params, definition, function_name
+        return sql, params, definition, function_name, arguments, values, field_names
 
     def create_test(self, function_name):
         expected = tuple([field.test_default for field in self.fields])
@@ -128,10 +129,8 @@ def main(filename: str, sql_type: str):
             builder = SQLBuilder(table_name, fields)
 
         table_sql = builder.create_table_statement()
-        insert_sql, params, definition, function_name = builder.create_insert_statement()
-
-        insert_function = f'{definition}\n    params = {params}\n    id = YOUR_CONNECTOR_EXECUTOR("""{insert_sql}""",\n\
-                                 params)\n    return id'
+        insert_sql, params, definition, function_name, arguments, values, field_names = builder.create_insert_statement()
+        insert_function = templates.insert_with_id(function_name, arguments, params, table_name, values, field_names)
 
         test_function = builder.create_test(function_name)
 
