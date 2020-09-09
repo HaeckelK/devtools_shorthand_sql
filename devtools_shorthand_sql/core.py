@@ -2,7 +2,15 @@
 import argparse
 from typing import List
 
-from devtools_shorthand_sql.fields import Field, BlobField, IDField, IntegerField, RealField, TextField
+from devtools_shorthand_sql.fields import (
+    Field,
+    BlobField,
+    IDField,
+    IntegerField,
+    RealField,
+    TextField,
+    BooleanIntField
+)
 import devtools_shorthand_sql.templates as templates
 
 
@@ -17,7 +25,6 @@ def map_raw_field_data_type(raw_field_data_type):
     value = raw_field_data_type.upper()
     mapping = {'INT': 'INT',
                'INTEGER': 'INT',
-               'INT': 'INT',
                'INTEGER': 'INT',
                'TINYINT': 'INT',
                'SMALLINT': 'INT',
@@ -28,7 +35,9 @@ def map_raw_field_data_type(raw_field_data_type):
                'INT8': 'INT',
                'ID': 'INTEGER PRIMARY KEY',
                'INTEGER PRIMARY KEY': 'INTEGER PRIMARY KEY',
-               'TEXT': 'TEXT'}
+               'TEXT': 'TEXT',
+               'BOOLEAN': 'BOOLEAN',
+               'BOOL': 'BOOLEAN'}
     mapped = mapping[value]
     return mapped
 
@@ -37,7 +46,8 @@ def map_raw_field_data_type(raw_field_data_type):
 def get_field(field_name, field_data_type):
     mapping = {'INT': IntegerField,
                'TEXT': TextField,
-               'INTEGER PRIMARY KEY': IDField}
+               'INTEGER PRIMARY KEY': IDField,
+               'BOOLEAN': BooleanIntField}
     f = mapping.get(field_data_type, Field)
     field = f(field_name, field_data_type)
     return field
@@ -51,6 +61,10 @@ class SQLBuilder():
     def __init__(self, table_name: str, fields: List[Field]):
         self.table_name = table_name
         self.fields = fields
+
+        self.creation_statement = None
+        self.insert_function = None
+        self.insert_function_test = None
         return
 
     @property
@@ -83,6 +97,13 @@ class SQLBuilder():
             kwargs.append(kwarg)
         return ', '.join(kwargs)
 
+    @property
+    def has_idfield(self):
+        for field in self.fields:
+            if isinstance(field, IDField):
+                return True
+        return False
+
     def create_table_statement(self) -> str:
         sql_lines = ''
         for field in self.fields:
@@ -90,6 +111,7 @@ class SQLBuilder():
             sql_lines += line + '\n'
         sql_lines = sql_lines[:-2]
         sql = f"""CREATE TABLE IF NOT EXISTS {self.table_name} (\n{sql_lines}\n);"""
+        self.creation_statement = sql
         return sql
 
     def create_insert_function_with_id(self) -> str:
@@ -97,6 +119,7 @@ class SQLBuilder():
         insert_function = templates.insert_with_id(function_name, self.arguments,
                                                    self.params, self.table_name,
                                                    self.values, self.field_names)
+        self.insert_function = insert_function
         return insert_function
 
     def create_insert_function_without_id(self) -> str:
@@ -104,18 +127,21 @@ class SQLBuilder():
         insert_function = templates.insert_without_id(function_name, self.arguments,
                                                       self.params, self.table_name,
                                                       self.values, self.field_names)
+        self.insert_function = insert_function
         return insert_function
 
     def create_insert_function_with_id_test(self) -> str:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
         function = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        self.insert_function_test = function
         return function
 
     def create_insert_function_without_id_test(self) -> str:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
         function = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        self.insert_function_test = function
         return function
 
 
@@ -159,21 +185,18 @@ def main(filename: str, sql_type: str):
         else:
             builder = SQLBuilder(table_name, fields)
 
-        table_sql = builder.create_table_statement()
-        insert_function = builder.create_insert_function_with_id()
-        insert_function_without_id = builder.create_insert_function_without_id()
+        builder.create_table_statement()
+        if builder.has_idfield:
+            builder.create_insert_function_with_id()
+            builder.create_insert_function_with_id_test()
+        else:
+            builder.create_insert_function_without_id()
+            builder.create_insert_function_without_id_test()
 
-        test_insert_function = builder.create_insert_function_with_id_test()
-        test_insert_function_without_id = builder.create_insert_function_without_id_test()
-
         print('\n')
-        print(table_sql)
+        print(builder.creation_statement)
         print('\n')
-        print(insert_function)
+        print(builder.insert_function)
         print('\n')
-        print(insert_function_without_id)
-        print('\n')
-        print(test_insert_function)
-        print('\n')
-        print(test_insert_function_without_id)
+        print(builder.insert_function_test)
     return
