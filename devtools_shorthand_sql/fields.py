@@ -1,7 +1,7 @@
 
 
 class Field():
-    test_default = ''
+    test_default_function = lambda x: ''
     type_hint = None
     def __init__(self, name, field_type):
         self.name = name
@@ -22,6 +22,10 @@ class Field():
     def param(self):
         return self.name
 
+    @property
+    def test_default(self):
+        return self.test_default_function()
+
     def lowercase(self):
         self.name = self.name.lower()
         return
@@ -32,17 +36,17 @@ class Field():
 
 
 class IntegerField(Field):
-    test_default = 999
+    test_default_function = lambda x: 999
     type_hint = 'int'
 
 
 class RealField(Field):
-    test_default = 3.5
+    test_default_function = lambda x: 3.5
     type_hint = 'float'
 
 
 class TextField(Field):
-    test_default = '123fakestreet'
+    test_default_function = lambda x: '123fakestreet'
     type_hint = 'str'
 
 
@@ -52,7 +56,7 @@ class BlobField(Field):
 
 
 class IDField(Field):
-    test_default = 1
+    test_default_function = lambda x: 1
     type_hint = 'int'
 
     @property
@@ -65,5 +69,5 @@ class IDField(Field):
 
 
 class BooleanIntField(Field):
-    test_default = 0
+    test_default_function = lambda x: 0
     type_hint = 'int'
