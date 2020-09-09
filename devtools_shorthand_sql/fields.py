@@ -1,4 +1,5 @@
 import random
+import string
 
 
 class Field():
@@ -41,7 +42,8 @@ class Field():
 
 
 class IntegerField(Field):
-    test_default_function = lambda x: random.randrange(-1024, 1024)
+    # TODO should be signed
+    test_default_function = lambda x: random.randint(0, 1024)
     type_hint = 'int'
 
 
@@ -51,7 +53,7 @@ class RealField(Field):
 
 
 class TextField(Field):
-    test_default_function = lambda x: '123fakestreet'
+    test_default_function = lambda x: ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     type_hint = 'str'
 
 
@@ -74,5 +76,5 @@ class IDField(Field):
 
 
 class BooleanIntField(Field):
-    test_default_function = lambda x: 0
+    test_default_function = lambda x: random.choice([0, 1])
     type_hint = 'int'
