@@ -1,3 +1,4 @@
+import random
 
 
 class Field():
@@ -6,6 +7,8 @@ class Field():
     def __init__(self, name, field_type):
         self.name = name
         self.field_type = field_type
+        # TODO is this right way to do this?
+        self._test_default = None
         return
 
     @property
@@ -24,7 +27,9 @@ class Field():
 
     @property
     def test_default(self):
-        return self.test_default_function()
+        if self._test_default is None:
+            self._test_default = self.test_default_function()
+        return self._test_default
 
     def lowercase(self):
         self.name = self.name.lower()
@@ -36,7 +41,7 @@ class Field():
 
 
 class IntegerField(Field):
-    test_default_function = lambda x: 999
+    test_default_function = lambda x: random.randrange(-1024, 1024)
     type_hint = 'int'
 
 
