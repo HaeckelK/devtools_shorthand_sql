@@ -62,3 +62,8 @@ class IDField(Field):
     @property
     def param(self):
         return 'None'
+
+
+class BooleanIntField(Field):
+    test_default = 0
+    type_hint = 'int'
