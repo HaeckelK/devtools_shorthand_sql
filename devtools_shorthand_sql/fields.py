@@ -1,11 +1,15 @@
+import random
+import string
 
 
 class Field():
-    test_default = ''
+    test_default_function = lambda x: ''
     type_hint = None
     def __init__(self, name, field_type):
         self.name = name
         self.field_type = field_type
+        # TODO is this right way to do this?
+        self._test_default = None
         return
 
     @property
@@ -22,6 +26,12 @@ class Field():
     def param(self):
         return self.name
 
+    @property
+    def test_default(self):
+        if self._test_default is None:
+            self._test_default = self.test_default_function()
+        return self._test_default
+
     def lowercase(self):
         self.name = self.name.lower()
         return
@@ -32,17 +42,18 @@ class Field():
 
 
 class IntegerField(Field):
-    test_default = 999
+    # TODO should be signed
+    test_default_function = lambda x: random.randint(0, 1024)
     type_hint = 'int'
 
 
 class RealField(Field):
-    test_default = 3.5
+    test_default_function = lambda x: 3.5
     type_hint = 'float'
 
 
 class TextField(Field):
-    test_default = '123fakestreet'
+    test_default_function = lambda x: ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     type_hint = 'str'
 
 
@@ -52,7 +63,7 @@ class BlobField(Field):
 
 
 class IDField(Field):
-    test_default = 1
+    test_default_function = lambda x: 1
     type_hint = 'int'
 
     @property
@@ -65,5 +76,5 @@ class IDField(Field):
 
 
 class BooleanIntField(Field):
-    test_default = 0
+    test_default_function = lambda x: random.choice([0, 1])
     type_hint = 'int'
