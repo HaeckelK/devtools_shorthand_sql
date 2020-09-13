@@ -25,7 +25,6 @@ def map_raw_field_data_type(raw_field_data_type):
     value = raw_field_data_type.upper()
     mapping = {'INT': 'INT',
                'INTEGER': 'INT',
-               'INTEGER': 'INT',
                'TINYINT': 'INT',
                'SMALLINT': 'INT',
                'MEDIUMINT': 'INT',
@@ -53,6 +52,25 @@ def get_field(field_name, field_data_type):
     return field
 
 
+# Generated functions
+class BaseFunction():
+    function_type = None
+    def __init__(self, name: str, text: str):
+        self.name = name
+        self.text = text
+
+    def __str__(self):
+        return self.text
+    
+
+class UnitTest(BaseFunction):
+    function_type = 'unit_test'
+
+
+class Function(BaseFunction):
+    function_type = 'function'
+
+
 # TODO this is a function builder, which has a SQL generator attached.
 # TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
 # TODO sort of dependency with templates
@@ -65,6 +83,8 @@ class SQLBuilder():
         self.creation_statement = None
         self.insert_function = None
         self.insert_function_test = None
+        # boolean_functions will include function and unit test
+        self.boolean_functions = []
         return
 
     @property
@@ -104,6 +124,11 @@ class SQLBuilder():
                 return True
         return False
 
+    # TODO this needs to check a more general BooleanField
+    @property
+    def boolean_fields(self):
+        return [f for f in self.fields if isinstance(f, BooleanIntField)]
+
     def create_table_statement(self) -> str:
         sql_lines = ''
         for field in self.fields:
@@ -114,34 +139,44 @@ class SQLBuilder():
         self.creation_statement = sql
         return sql
 
-    def create_insert_function_with_id(self) -> str:
+    def create_insert_function_with_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
         insert_function = templates.insert_with_id(function_name, self.arguments,
                                                    self.params, self.table_name,
                                                    self.values, self.field_names)
-        self.insert_function = insert_function
-        return insert_function
+        function = Function(function_name, insert_function)
+        self.insert_function = function
+        return function
 
-    def create_insert_function_without_id(self) -> str:
+    def create_insert_function_without_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
         insert_function = templates.insert_without_id(function_name, self.arguments,
                                                       self.params, self.table_name,
                                                       self.values, self.field_names)
-        self.insert_function = insert_function
-        return insert_function
+        function = Function(function_name, insert_function)
+        self.insert_function = function
+        return function
 
-    def create_insert_function_with_id_test(self) -> str:
+    def create_insert_function_with_id_test(self) -> UnitTest:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
-        function = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        function_text = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        function = UnitTest(function_name, function_text)
         self.insert_function_test = function
         return function
 
-    def create_insert_function_without_id_test(self) -> str:
+    def create_insert_function_without_id_test(self) -> UnitTest:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
-        function = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        function_text = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        function = UnitTest(function_name, function_text)
         self.insert_function_test = function
+        return function
+
+    def create_get_status_function(self) -> str:
+        function = templates.create_get_status_function(self.table_name, 'test_col', 'int')
+        print('\nHEREHEREHERE')
+        print(function)
         return function
 
 
@@ -192,6 +227,19 @@ def main(filename: str, sql_type: str):
         else:
             builder.create_insert_function_without_id()
             builder.create_insert_function_without_id_test()
+        
+        for field in builder.boolean_fields:
+            pass
+            # TODO pass field in
+            #builder.create_get_status_function()
+            # unit test
+            # builder.create update
+            # no unit test make it a private functino
+            # builder.create update true
+            # unit test
+            # builder.create update False
+            # unit test
+        
 
         print('\n')
         print(builder.creation_statement)
@@ -199,4 +247,6 @@ def main(filename: str, sql_type: str):
         print(builder.insert_function)
         print('\n')
         print(builder.insert_function_test)
+        #print('\n')
+        #print(builder.insert_function_test)
     return
