@@ -173,10 +173,10 @@ class SQLBuilder():
         self.insert_function_test = function
         return function
 
-    def create_get_status_function(self) -> str:
-        function = templates.create_get_status_function(self.table_name, 'test_col', 'int')
-        print('\nHEREHEREHERE')
-        print(function)
+    # TODO this should just be BooleanField as type
+    def create_get_status_function(self, field: BooleanIntField, idfield: IDField) -> Function:
+        function = templates.create_get_status_function(self.table_name, field, idfield)
+        self.boolean_functions.append(function)
         return function
 
 
@@ -228,10 +228,10 @@ def main(filename: str, sql_type: str):
             builder.create_insert_function_without_id()
             builder.create_insert_function_without_id_test()
         
-        for field in builder.boolean_fields:
-            pass
-            # TODO pass field in
-            #builder.create_get_status_function()
+        for boolean_field in builder.boolean_fields:
+            # TODO this is not generic, how to get idfield normally? may not exist.
+            idfield = builder.fields[0]
+            builder.create_get_status_function(boolean_field, idfield)
             # unit test
             # builder.create update
             # no unit test make it a private functino
@@ -247,6 +247,9 @@ def main(filename: str, sql_type: str):
         print(builder.insert_function)
         print('\n')
         print(builder.insert_function_test)
+        for function in builder.boolean_functions:
+            print('\n')
+            print(function)
         #print('\n')
         #print(builder.insert_function_test)
     return

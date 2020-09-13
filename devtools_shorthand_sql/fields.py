@@ -62,6 +62,7 @@ class BlobField(Field):
     pass
 
 
+# TODO I need access to arg and param for IDField, need to think of another way to exclude elsewhere
 class IDField(Field):
     test_default_function = lambda x: 1
     type_hint = 'int'
