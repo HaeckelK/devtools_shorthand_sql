@@ -5,26 +5,27 @@ import string
 class Field():
     test_default_function = lambda x: ''
     type_hint = None
-    def __init__(self, name, field_type):
-        self.name = name
+    def __init__(self, sql_column_name, field_type):
+        self.original_sql_column_name = sql_column_name
+        self.sql_column_name = sql_column_name
+        self.variable_name = sql_column_name
         self.field_type = field_type
-        # TODO is this right way to do this?
         self._test_default = None
         return
 
     @property
-    def kwarg(self):
+    def function_kwarg(self):
         if isinstance(self.test_default, str):
             return '"' + self.test_default + '"'
         return self.test_default
 
     @property
-    def arg(self):
-        return self.name + ': ' + str(self.type_hint)
+    def function_arg(self):
+        return self.variable_name + ': ' + str(self.type_hint)
 
     @property
-    def param(self):
-        return self.name
+    def sql_query_param(self):
+        return self.variable_name
 
     @property
     def test_default(self):
@@ -33,11 +34,11 @@ class Field():
         return self._test_default
 
     def lowercase(self):
-        self.name = self.name.lower()
+        self.column_name = self.original_sql_column_name.lower()
         return
 
     def uppercase(self):
-        self.name = self.name.upper()
+        self.column_name = self.original_sql_column_name.upper()
         return
 
 

@@ -89,15 +89,15 @@ class SQLBuilder():
 
     @property
     def arguments(self):
-        return ', '.join([field.arg for field in self.fields if field.arg != ''])
+        return ', '.join([field.function_arg for field in self.fields if field.function_arg != ''])
 
     @property
     def field_names(self):
-        return ', '.join([field.name for field in self.fields])
+        return ', '.join([field.sql_column_name for field in self.fields])
 
     @property
     def params(self):
-        return ', '.join([field.param for field in self.fields])
+        return ', '.join([field.sql_query_param for field in self.fields])
 
     @property
     def values(self):
@@ -113,7 +113,8 @@ class SQLBuilder():
         for field in self.fields:
             if isinstance(field, IDField):
                 continue
-            kwarg = field.name + '=' + str(field.kwarg)
+            # TODO move this into Field
+            kwarg = field.variable_name + '=' + str(field.function_kwarg)
             kwargs.append(kwarg)
         return ', '.join(kwargs)
 
@@ -132,7 +133,7 @@ class SQLBuilder():
     def create_table_statement(self) -> str:
         sql_lines = ''
         for field in self.fields:
-            line = field.name + ' ' + field.field_type + ','
+            line = field.sql_column_name + ' ' + field.field_type + ','
             sql_lines += line + '\n'
         sql_lines = sql_lines[:-2]
         sql = f"""CREATE TABLE IF NOT EXISTS {self.table_name} (\n{sql_lines}\n);"""
@@ -212,8 +213,6 @@ def main(filename: str, sql_type: str):
             field_data_type = map_raw_field_data_type(raw_field_data_type)
             field = get_field(field_name, field_data_type)
             fields.append(field)
-        for field in fields:
-            field.lowercase()
         
         if sql_type == 'postgres':
             builder = PostgresSQLBuilder(table_name, fields)
