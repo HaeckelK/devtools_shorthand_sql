@@ -213,7 +213,7 @@ def main(filename: str, sql_type: str):
             field_data_type = map_raw_field_data_type(raw_field_data_type)
             field = get_field(field_name, field_data_type)
             fields.append(field)
-        
+
         if sql_type == 'postgres':
             builder = PostgresSQLBuilder(table_name, fields)
         else:

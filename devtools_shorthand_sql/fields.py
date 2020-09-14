@@ -9,6 +9,7 @@ class Field():
         self.original_sql_column_name = sql_column_name
         self.sql_column_name = sql_column_name
         self.variable_name = sql_column_name
+        self.format_variable_name_pep8()
         self.field_type = field_type
         self._test_default = None
         return
@@ -39,6 +40,12 @@ class Field():
 
     def uppercase(self):
         self.column_name = self.original_sql_column_name.upper()
+        return
+
+    def format_variable_name_pep8(self):
+        text = self.variable_name
+        text = text.lower()
+        self.variable_name = text
         return
 
 
