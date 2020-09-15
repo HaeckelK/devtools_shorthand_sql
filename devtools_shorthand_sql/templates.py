@@ -1,3 +1,4 @@
+from devtools_shorthand_sql.fields import IDField, BooleanIntField
 
 
 def insert_with_id(function_name: str, arguments: str, params: str, table_name: str, values: str,
@@ -46,6 +47,15 @@ def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
 '''
     return text
 
+def create_get_status_function(table_name: str, boolean_field: BooleanIntField, idfield: IDField):
+    text = f'''
+def {table_name}_get_{boolean_field.variable_name}_status({idfield.variable_name}: {idfield.type_hint}) -> {boolean_field.type_hint}:
+    result = YOUR_CONNECTOR_EXECUTOR("""SELECT {idfield.sql_column_name} FROM {table_name} WHERE {idfield.sql_column_name}=?;""",
+                            {idfield.sql_query_param}).fetchall()[0]
+    return result
+    '''
+    return text
+
 # create table statement
 '''
 CREATE TABLE IF NOT EXISTS photo (
@@ -64,13 +74,7 @@ active boolean
 goals int
 );
 '''
-'''
-def player_get_active_status(playerid: int) -> None:
-    YOUR_CONNECTOR_EXECUTOR("""SELECT active FROM player WHERE playerid=?;""",
-                            playerid)
-    result = YOUR_CONNECTOR_QUERY('SELECT * FROM photo').fetchall()[0]
-    return    
-'''
+
 # unit test get boolean status
 # update boolean status True
 # update boolean status False

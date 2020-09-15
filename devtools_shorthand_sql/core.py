@@ -25,7 +25,6 @@ def map_raw_field_data_type(raw_field_data_type):
     value = raw_field_data_type.upper()
     mapping = {'INT': 'INT',
                'INTEGER': 'INT',
-               'INTEGER': 'INT',
                'TINYINT': 'INT',
                'SMALLINT': 'INT',
                'MEDIUMINT': 'INT',
@@ -53,6 +52,25 @@ def get_field(field_name, field_data_type):
     return field
 
 
+# Generated functions
+class BaseFunction():
+    function_type = None
+    def __init__(self, name: str, text: str):
+        self.name = name
+        self.text = text
+
+    def __str__(self):
+        return self.text
+    
+
+class UnitTest(BaseFunction):
+    function_type = 'unit_test'
+
+
+class Function(BaseFunction):
+    function_type = 'function'
+
+
 # TODO this is a function builder, which has a SQL generator attached.
 # TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
 # TODO sort of dependency with templates
@@ -65,19 +83,21 @@ class SQLBuilder():
         self.creation_statement = None
         self.insert_function = None
         self.insert_function_test = None
+        # boolean_functions will include function and unit test
+        self.boolean_functions = []
         return
 
     @property
     def arguments(self):
-        return ', '.join([field.arg for field in self.fields if field.arg != ''])
+        return ', '.join([field.function_arg for field in self.fields if field.function_arg != ''])
 
     @property
     def field_names(self):
-        return ', '.join([field.name for field in self.fields])
+        return ', '.join([field.sql_column_name for field in self.fields])
 
     @property
     def params(self):
-        return ', '.join([field.param for field in self.fields])
+        return ', '.join([field.sql_query_param for field in self.fields])
 
     @property
     def values(self):
@@ -93,7 +113,8 @@ class SQLBuilder():
         for field in self.fields:
             if isinstance(field, IDField):
                 continue
-            kwarg = field.name + '=' + str(field.kwarg)
+            # TODO move this into Field
+            kwarg = field.variable_name + '=' + str(field.function_kwarg)
             kwargs.append(kwarg)
         return ', '.join(kwargs)
 
@@ -104,44 +125,59 @@ class SQLBuilder():
                 return True
         return False
 
+    # TODO this needs to check a more general BooleanField
+    @property
+    def boolean_fields(self):
+        return [f for f in self.fields if isinstance(f, BooleanIntField)]
+
     def create_table_statement(self) -> str:
         sql_lines = ''
         for field in self.fields:
-            line = field.name + ' ' + field.field_type + ','
+            line = field.sql_column_name + ' ' + field.field_type + ','
             sql_lines += line + '\n'
         sql_lines = sql_lines[:-2]
         sql = f"""CREATE TABLE IF NOT EXISTS {self.table_name} (\n{sql_lines}\n);"""
         self.creation_statement = sql
         return sql
 
-    def create_insert_function_with_id(self) -> str:
+    def create_insert_function_with_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
         insert_function = templates.insert_with_id(function_name, self.arguments,
                                                    self.params, self.table_name,
                                                    self.values, self.field_names)
-        self.insert_function = insert_function
-        return insert_function
+        function = Function(function_name, insert_function)
+        self.insert_function = function
+        return function
 
-    def create_insert_function_without_id(self) -> str:
+    def create_insert_function_without_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
         insert_function = templates.insert_without_id(function_name, self.arguments,
                                                       self.params, self.table_name,
                                                       self.values, self.field_names)
-        self.insert_function = insert_function
-        return insert_function
+        function = Function(function_name, insert_function)
+        self.insert_function = function
+        return function
 
-    def create_insert_function_with_id_test(self) -> str:
+    def create_insert_function_with_id_test(self) -> UnitTest:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
-        function = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        function_text = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        function = UnitTest(function_name, function_text)
         self.insert_function_test = function
         return function
 
-    def create_insert_function_without_id_test(self) -> str:
+    def create_insert_function_without_id_test(self) -> UnitTest:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
-        function = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        function_text = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        function = UnitTest(function_name, function_text)
         self.insert_function_test = function
+        return function
+
+    # TODO this should just be BooleanField as type
+    def create_get_status_function(self, field: BooleanIntField, idfield: IDField) -> Function:
+        function = templates.create_get_status_function(self.table_name, field, idfield)
+        self.boolean_functions.append(function)
         return function
 
 
@@ -177,9 +213,7 @@ def main(filename: str, sql_type: str):
             field_data_type = map_raw_field_data_type(raw_field_data_type)
             field = get_field(field_name, field_data_type)
             fields.append(field)
-        for field in fields:
-            field.lowercase()
-        
+
         if sql_type == 'postgres':
             builder = PostgresSQLBuilder(table_name, fields)
         else:
@@ -192,6 +226,19 @@ def main(filename: str, sql_type: str):
         else:
             builder.create_insert_function_without_id()
             builder.create_insert_function_without_id_test()
+        
+        for boolean_field in builder.boolean_fields:
+            # TODO this is not generic, how to get idfield normally? may not exist.
+            idfield = builder.fields[0]
+            builder.create_get_status_function(boolean_field, idfield)
+            # unit test
+            # builder.create update
+            # no unit test make it a private functino
+            # builder.create update true
+            # unit test
+            # builder.create update False
+            # unit test
+        
 
         print('\n')
         print(builder.creation_statement)
@@ -199,4 +246,9 @@ def main(filename: str, sql_type: str):
         print(builder.insert_function)
         print('\n')
         print(builder.insert_function_test)
+        for function in builder.boolean_functions:
+            print('\n')
+            print(function)
+        #print('\n')
+        #print(builder.insert_function_test)
     return
