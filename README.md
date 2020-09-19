@@ -5,7 +5,6 @@
 [![image](https://img.shields.io/pypi/pyversions/devtools_shorthand_sql.svg)](https://pypi.python.org/pypi/devtools_shorthand_sql/)
 [![Travis](https://img.shields.io/travis/HaeckelK/devtools_shorthand_sql/master.svg?logo=travis)](https://travis-ci.org/HaeckelK/devtools_shorthand_sql)
 [![readthedocs](https://readthedocs.org/projects/devtools-shorthand-sql/badge/?version=latest)](https://devtools-shorthand-sql.readthedocs.io/en/latest/?badge=latest)
-
 [![codecov](https://codecov.io/gh/HaeckelK/devtools_shorthand_sql/branch/master/graph/badge.svg)](https://codecov.io/gh/HaeckelK/devtools_shorthand_sql)
 
 ## Overview
