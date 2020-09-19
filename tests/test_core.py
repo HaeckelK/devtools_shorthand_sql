@@ -24,18 +24,6 @@ def test_load_instructions_file(tmpdir):
     assert core.load_instructions_file(filename) == text
 
 
-def test_map_raw_field_data_type():
-    # field type exists, upper
-    result = core.map_raw_field_data_type('INT')
-    assert result == 'INT'
-    # field type exists, lower
-    result = core.map_raw_field_data_type('int')
-    assert result == 'INT'
-    # field does not exist
-    with pytest.raises(KeyError):
-        result = core.map_raw_field_data_type('no')
-
-
 def test_base_function():
     name, text = 'name', 'text'
     base = core.BaseFunction(name, text)
