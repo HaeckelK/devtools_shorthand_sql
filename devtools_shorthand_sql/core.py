@@ -21,6 +21,14 @@ def load_instructions_file(filename: str) -> str:
 
 
 def map_raw_field_data_type(raw_field_data_type):
+    """
+    Map a raw input field to an sql field type.
+
+    Raises
+    ------
+    KeyError:
+        If raw field not in mapping.
+    """
     # TODO mapping non sqlite to sqlite
     value = raw_field_data_type.upper()
     mapping = {'INT': 'INT',
