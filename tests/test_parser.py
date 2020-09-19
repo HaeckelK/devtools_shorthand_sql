@@ -16,34 +16,25 @@ def test_map_raw_field_data_type():
         result = parser.map_raw_field_data_type('no')
 
 
-def test_parse_instructions_into_x():
-    # This is just a high level test to check that the final output
-    # still works after recfactoring.
-    content = """# photo
+@pytest.mark.parametrize("content",
+[("""# photo
 ID,id
 SIZE,int
 FILENAME,text
 date_taken,int
-is_DELeted,boolean"""
-    result = parser.parse_instructions_into_x(content)
-    fields = result[0]['fields']
-    assert result[0]['table_name'] == 'photo'
-    assert fields[0].field_type == 'INTEGER PRIMARY KEY'
-    assert fields[1].field_type == 'INT'
-    assert fields[2].field_type == 'TEXT'
-    assert fields[3].field_type == 'INT'
-
-
-def test_parse_instructions_into_x2():
-    # This is just a high level test to check that the final output
-    # still works after recfactoring.
-    content = """well what about this
+is_DELeted,boolean"""),
+("""well what about this
 # photo
 ID,id
 SIZE,int
 FILENAME,text
 date_taken,int
-is_DELeted,boolean"""
+is_DELeted,boolean""")
+]
+)
+def test_parse_instructions_into_x(content):
+    # This is just a high level test to check that the final output
+    # still works after recfactoring.
     result = parser.parse_instructions_into_x(content)
     fields = result[0]['fields']
     assert result[0]['table_name'] == 'photo'
@@ -66,4 +57,4 @@ def test_parse_instructions_into_x_fail_not_enough_elements_in_row(capfd):
     with pytest.raises(SystemExit):
         parser.parse_instructions_into_x(content)
     out, err = capfd.readouterr()
-    assert out == "Error: Instruction line 2 ['fail'] has 1 elements. Expected at least 2.\n"
+    assert out == "Error: Instruction line 2 ['fail'] has 1 element(s). Expected at least 2.\n"

@@ -79,9 +79,8 @@ def _process_raw_instruction(raw_instruction: str):
     fields = []
     for i, raw_field in enumerate(raw_fields):
         if len(raw_field) < 2:
-            fatal_error(f'Instruction line {i + 1} {raw_field} has {len(raw_field)} elements. Expected at least 2.')
-        raw_field_data_type = raw_field[1]
-        field_name = raw_field[0]
+            fatal_error(f'Instruction line {i + 1} {raw_field} has {len(raw_field)} element(s). Expected at least 2.')
+        field_name, raw_field_data_type = raw_field[0], raw_field[1]
         field_data_type = map_raw_field_data_type(raw_field_data_type)
         field = get_field(field_name, field_data_type)
         fields.append(field)

@@ -20,8 +20,8 @@ def load_instructions_file(filename: str) -> str:
     try:
         with open(filename, 'r') as f:
             contents = f.read()
-    except FileNotFoundError:
-        fatal_error(f'File does not exist {fileanme}.')
+    except FileNotFoundError :
+        fatal_error(f'File does not exist {filename}.')
     return contents
 
 
