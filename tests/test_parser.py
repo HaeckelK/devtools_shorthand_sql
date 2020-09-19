@@ -17,17 +17,38 @@ def test_map_raw_field_data_type():
 
 
 @pytest.mark.parametrize("content",
-[("""# photo
+[
+# Cleanest possible
+("""# photo
 ID,id
 SIZE,int
 FILENAME,text
 date_taken,int
 is_DELeted,boolean"""),
+# Drop data before first #
 ("""well what about this
 # photo
 ID,id
 SIZE,int
 FILENAME,text
+date_taken,int
+is_DELeted,boolean"""),
+# Double spacing
+# Double lines
+("""# photo
+ID, id
+SIZE,  int
+FILENAME,text
+date_taken,int
+is_DELeted,boolean"""),
+# Double lines
+("""# photo
+ID,id
+SIZE,int
+FILENAME,text
+
+
+
 date_taken,int
 is_DELeted,boolean""")
 ]

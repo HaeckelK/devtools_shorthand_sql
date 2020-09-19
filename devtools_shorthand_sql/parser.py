@@ -9,7 +9,7 @@ from devtools_shorthand_sql.fields import (
     TextField,
     BooleanIntField
 )
-from devtools_shorthand_sql.utils import fatal_error
+from devtools_shorthand_sql.utils import fatal_error, info_message
 
 
 def map_raw_field_data_type(raw_field_data_type):
@@ -78,9 +78,12 @@ def _process_raw_instruction(raw_instruction: str):
     raw_fields = [x.split(',') for x in lines[1:]]
     fields = []
     for i, raw_field in enumerate(raw_fields):
+        if raw_field == ['']:
+            info_message(f'Instruction line {i + 1} is blank and has been skipped.')
+            continue
         if len(raw_field) < 2:
             fatal_error(f'Instruction line {i + 1} {raw_field} has {len(raw_field)} element(s). Expected at least 2.')
-        field_name, raw_field_data_type = raw_field[0], raw_field[1]
+        field_name, raw_field_data_type = raw_field[0].strip(), raw_field[1].strip()
         field_data_type = map_raw_field_data_type(raw_field_data_type)
         field = get_field(field_name, field_data_type)
         fields.append(field)
