@@ -13,11 +13,15 @@ from devtools_shorthand_sql.fields import (
 )
 import devtools_shorthand_sql.templates as templates
 from devtools_shorthand_sql.parser import parse_instructions_into_x
+from devtools_shorthand_sql.utils import fatal_error
 
 
 def load_instructions_file(filename: str) -> str:
-    with open(filename, 'r') as f:
-        contents = f.read()
+    try:
+        with open(filename, 'r') as f:
+            contents = f.read()
+    except FileNotFoundError:
+        fatal_error(f'File does not exist {fileanme}.')
     return contents
 
 
