@@ -7,7 +7,9 @@ python:
   - 3.6
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
+install: pip install pytest coverage
 
 # Command to run tests, e.g. python setup.py test
-script: tox
+script:
+  - coverage run -m pytest .
+  - bash <(curl -s https://codecov.io/bash)
