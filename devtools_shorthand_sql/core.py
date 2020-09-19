@@ -12,44 +12,17 @@ from devtools_shorthand_sql.fields import (
     BooleanIntField
 )
 import devtools_shorthand_sql.templates as templates
+from devtools_shorthand_sql.parser import parse_instructions_into_x
+from devtools_shorthand_sql.utils import fatal_error
 
 
 def load_instructions_file(filename: str) -> str:
-    with open(filename, 'r') as f:
-        contents = f.read()
+    try:
+        with open(filename, 'r') as f:
+            contents = f.read()
+    except FileNotFoundError:
+        fatal_error(f'File does not exist {fileanme}.')
     return contents
-
-
-def map_raw_field_data_type(raw_field_data_type):
-    # TODO mapping non sqlite to sqlite
-    value = raw_field_data_type.upper()
-    mapping = {'INT': 'INT',
-               'INTEGER': 'INT',
-               'TINYINT': 'INT',
-               'SMALLINT': 'INT',
-               'MEDIUMINT': 'INT',
-               'BIGINT': 'INT',
-               'UNSIGNED BIG INT': 'INT',
-               'INT2': 'INT',
-               'INT8': 'INT',
-               'ID': 'INTEGER PRIMARY KEY',
-               'INTEGER PRIMARY KEY': 'INTEGER PRIMARY KEY',
-               'TEXT': 'TEXT',
-               'BOOLEAN': 'BOOLEAN',
-               'BOOL': 'BOOLEAN'}
-    mapped = mapping[value]
-    return mapped
-
-
-# TODO rename
-def get_field(field_name, field_data_type):
-    mapping = {'INT': IntegerField,
-               'TEXT': TextField,
-               'INTEGER PRIMARY KEY': IDField,
-               'BOOLEAN': BooleanIntField}
-    f = mapping.get(field_data_type, Field)
-    field = f(field_name, field_data_type)
-    return field
 
 
 # Generated functions
@@ -187,32 +160,11 @@ class PostgresSQLBuilder(SQLBuilder):
 
 def main(filename: str, sql_type: str):
     content = load_instructions_file(filename)
-
-    # get separate instructions
-    raw_instructions = content.split('#')
-    for raw_instruction in raw_instructions:
-        # Tiny pre process
-        raw_instruction.replace('  ', ' ')
-        #print(raw_instruction)
-        # Individual elements
-        raw_lines = raw_instruction.split('\n')
-        # basic pre process
-        lines = [x.strip() for x in raw_lines]
-        #print(lines)
-        # TODO assumed its a table instruction
-        if not lines[0].lower().startswith('table'):
-            continue
-        table_name = lines[0].replace('table', '').strip()
-        raw_fields = [x.split(' ') for x in lines[1:]]
-        fields = []
-        for raw_field in raw_fields:
-            if len(raw_field) != 2:
-                continue
-            raw_field_data_type = raw_field[1]
-            field_name = raw_field[0]
-            field_data_type = map_raw_field_data_type(raw_field_data_type)
-            field = get_field(field_name, field_data_type)
-            fields.append(field)
+    # TODO rename
+    packet = parse_instructions_into_x(content)
+    for item in packet:
+        table_name = item['table_name']
+        fields = item['fields']
 
         if sql_type == 'postgres':
             builder = PostgresSQLBuilder(table_name, fields)
