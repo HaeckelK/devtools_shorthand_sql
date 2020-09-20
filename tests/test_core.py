@@ -3,6 +3,7 @@ import pytest
 
 import random
 import os
+import filecmp
 
 from devtools_shorthand_sql import core
 
@@ -16,9 +17,13 @@ def sqlbuilder_basic():
     return x
 
 
-def test_load_instructions_file(tmpdir):
+def test_load_instructions_file(tmpdir, capfd):
     text = '123\n456'
     filename = os.path.join(tmpdir, 'test.txt')
+    with pytest.raises(SystemExit):
+        core.load_instructions_file(filename)
+    out, err = capfd.readouterr()
+    assert out == f"Error: File does not exist {filename}.\n"
     with open(filename, 'w') as f:
         f.write(text)
     assert core.load_instructions_file(filename) == text
@@ -87,3 +92,18 @@ def test_insert_my_table(YOUR_CLEAN_DB_FIXTURE):
     x = sqlbuilder_basic
     result =  x.create_insert_function_without_id_test()
     assert result.text == expected
+
+
+def test_main_pass(tmpdir):
+    expected = os.path.join('tests', 'fixtures', 'basic_output.txt')
+    filename = os.path.join(tmpdir, 'shorthand.txt')
+    source = """# photo
+id,id
+size,int
+filename,text
+date_taken,int"""
+    with open(filename, 'w') as f:
+        f.write(source)
+    output_filename = os.path.join(tmpdir, 'output.txt')
+    core.main(filename, 'sqlite', output_filename)
+    assert filecmp.cmp(expected, output_filename)
