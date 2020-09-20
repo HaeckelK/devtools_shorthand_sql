@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import pytest
+import os
 
-from devtools_shorthand_sql import parser
+import devtools_shorthand_sql.instructions_parser as parser
 
 
 def test_map_raw_field_data_type():
@@ -79,3 +80,15 @@ def test_parse_instructions_into_x_fail_not_enough_elements_in_row(capfd):
         parser.parse_instructions_into_x(content)
     out, err = capfd.readouterr()
     assert out == "Error: Instruction line 2 ['fail'] has 1 element(s). Expected at least 2.\n"
+
+
+def test_load_instructions_file(tmpdir, capfd):
+    text = '123\n456'
+    filename = os.path.join(tmpdir, 'test.txt')
+    with pytest.raises(SystemExit):
+        parser.load_instructions_file(filename)
+    out, err = capfd.readouterr()
+    assert out == f"Error: File does not exist {filename}.\n"
+    with open(filename, 'w') as f:
+        f.write(text)
+    assert parser.load_instructions_file(filename) == text

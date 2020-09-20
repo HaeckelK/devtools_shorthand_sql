@@ -11,17 +11,8 @@ from devtools_shorthand_sql.fields import (  # noqa: F401
     BooleanIntField
 )
 import devtools_shorthand_sql.templates as templates
-from devtools_shorthand_sql.parser import parse_instructions_into_x
-from devtools_shorthand_sql.utils import fatal_error, info_message
-
-
-def load_instructions_file(filename: str) -> str:
-    try:
-        with open(filename, 'r') as f:
-            contents = f.read()
-    except FileNotFoundError:
-        fatal_error(f'File does not exist {filename}.')
-    return contents
+from devtools_shorthand_sql.instructions_parser import load_instructions_and_parse
+from devtools_shorthand_sql.utils import info_message
 
 
 # Generated functions
@@ -68,10 +59,12 @@ class SQLiteWriter(SQLWriter):
     value_char = '?'
 
 
-# TODO this is a function builder, which has a SQL generator attached.
+def get_sqlwriter(sql_type: str) -> SQLWriter:
+    return SQLiteWriter
+
+
 # TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
-# TODO sort of dependency with templates
-class SQLBuilder():
+class FunctionBuilder():
     def __init__(self, table_name: str, fields: List[Field], sql_writer: SQLWriter):
         self.table_name = table_name
         self.fields = fields
@@ -180,7 +173,7 @@ class SQLBuilder():
         return function
 
 
-def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
+def save_builders_to_file(builders: List[FunctionBuilder], filename: str) -> None:
     with open(filename, 'w') as f:
         for builder in builders:
             f.write(f'# Table Name: {builder.table_name}')
@@ -198,18 +191,14 @@ def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
 
 
 def main(filename: str, sql_type: str, output_filename: str):
-    content = load_instructions_file(filename)
-    sql_writer = SQLiteWriter()
-    # TODO rename
-    packet = parse_instructions_into_x(content)
-    builders: List[SQLBuilder] = []
-    for item in packet:
-        table_name = item['table_name']
-        fields = item['fields']
+    builders: List[FunctionBuilder] = []
+    sql_writer = get_sqlwriter(sql_type)()
+    table_structures = load_instructions_and_parse(filename)
+    for table_structure in table_structures:
+        table_name = table_structure['table_name']
+        fields = table_structure['fields']
 
-        builder = SQLBuilder(table_name, fields, sql_writer)
-
-        builders.append(builder)
+        builder = FunctionBuilder(table_name, fields, sql_writer)
 
         builder.create_table_statement()
         if builder.has_idfield:
@@ -223,12 +212,7 @@ def main(filename: str, sql_type: str, output_filename: str):
             # TODO this is not generic, how to get idfield normally? may not exist.
             idfield = builder.fields[0]
             builder.create_get_status_function(boolean_field, idfield)
-            # unit test
-            # builder.create update
-            # no unit test make it a private functino
-            # builder.create update true
-            # unit test
-            # builder.create update False
-            # unit test
+
+        builders.append(builder)
     save_builders_to_file(builders, output_filename)
     return
