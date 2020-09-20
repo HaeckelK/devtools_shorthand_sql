@@ -3,8 +3,10 @@ import string
 
 
 class Field():
-    test_default_function = lambda x: ''
+    def f(x): return ''
+    test_default_function = f
     type_hint = None
+
     def __init__(self, sql_column_name, field_type):
         self.original_sql_column_name = sql_column_name
         self.sql_column_name = sql_column_name
@@ -51,17 +53,20 @@ class Field():
 
 class IntegerField(Field):
     # TODO should be signed
-    test_default_function = lambda x: random.randint(0, 1024)
+    def f(x): return random.randint(0, 1024)
+    test_default_function = f
     type_hint = 'int'
 
 
 class RealField(Field):
-    test_default_function = lambda x: 3.5
+    def f(x): return 3.5
+    test_default_function = f
     type_hint = 'float'
 
 
 class TextField(Field):
-    test_default_function = lambda x: ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    def f(x): return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    test_default_function = f
     type_hint = 'str'
 
 
@@ -72,7 +77,8 @@ class BlobField(Field):
 
 # TODO I need access to arg and param for IDField, need to think of another way to exclude elsewhere
 class IDField(Field):
-    test_default_function = lambda x: 1
+    def f(x): return 1
+    test_default_function = f
     type_hint = 'int'
 
     @property
@@ -85,5 +91,6 @@ class IDField(Field):
 
 
 class BooleanIntField(Field):
-    test_default_function = lambda x: random.choice([0, 1])
+    def f(x): return random.choice([0, 1])
+    test_default_function = f
     type_hint = 'int'
