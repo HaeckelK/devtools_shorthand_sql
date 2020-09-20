@@ -60,13 +60,11 @@ class SQLiteWriter(SQLWriter):
 
 
 def get_sqlwriter(sql_type: str) -> SQLWriter:
-    return SQLiteWriter()
+    return SQLiteWriter
 
 
-# TODO this is a function builder, which has a SQL generator attached.
 # TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
-# TODO sort of dependency with templates
-class SQLBuilder():
+class FunctionBuilder():
     def __init__(self, table_name: str, fields: List[Field], sql_writer: SQLWriter):
         self.table_name = table_name
         self.fields = fields
@@ -175,7 +173,7 @@ class SQLBuilder():
         return function
 
 
-def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
+def save_builders_to_file(builders: List[FunctionBuilder], filename: str) -> None:
     with open(filename, 'w') as f:
         for builder in builders:
             f.write(f'# Table Name: {builder.table_name}')
@@ -193,16 +191,14 @@ def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
 
 
 def main(filename: str, sql_type: str, output_filename: str):
-    sql_writer = get_sqlwriter(sql_type)
-    packet = load_instructions_and_parse(filename)
-    builders: List[SQLBuilder] = []
-    for item in packet:
-        table_name = item['table_name']
-        fields = item['fields']
+    builders: List[FunctionBuilder] = []
+    sql_writer = get_sqlwriter(sql_type)()
+    table_structures = load_instructions_and_parse(filename)
+    for table_structure in table_structures:
+        table_name = table_structure['table_name']
+        fields = table_structure['fields']
 
-        builder = SQLBuilder(table_name, fields, sql_writer)
-
-        builders.append(builder)
+        builder = FunctionBuilder(table_name, fields, sql_writer)
 
         builder.create_table_statement()
         if builder.has_idfield:
@@ -216,5 +212,7 @@ def main(filename: str, sql_type: str, output_filename: str):
             # TODO this is not generic, how to get idfield normally? may not exist.
             idfield = builder.fields[0]
             builder.create_get_status_function(boolean_field, idfield)
+
+        builders.append(builder)
     save_builders_to_file(builders, output_filename)
     return
