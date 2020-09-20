@@ -1,6 +1,6 @@
 from typing import List
 
-from devtools_shorthand_sql.fields import (
+from devtools_shorthand_sql.fields import (  # noqa: F401
     Field,
     BlobField,
     IDField,
@@ -63,7 +63,7 @@ def _clean_raw_content(content: str) -> str:
 
 def _split_content_into_instruction_sections(content: str) -> List[str]:
     marker = '#'
-    if not marker in content:
+    if marker not in content:
         fatal_error('No instructions found in file. See documentation for example.')
     # instruction sections start with marker, anything before should be dropped
     content = content[content.find(marker):]
@@ -94,7 +94,7 @@ def _process_raw_instruction(raw_instruction: str):
 def parse_instructions_into_x(content: str):
     output = []
     clean_content = _clean_raw_content(content)
-    raw_instructions = _split_content_into_instruction_sections(content)
+    raw_instructions = _split_content_into_instruction_sections(clean_content)
     for i, raw_instruction in enumerate(raw_instructions):
         instruction_data = _process_raw_instruction(raw_instruction)
         output.append(instruction_data)

@@ -47,6 +47,7 @@ def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
 '''
     return text
 
+
 def create_get_status_function(table_name: str, boolean_field: BooleanIntField, idfield: IDField):
     text = f'''
 def {table_name}_get_{boolean_field.variable_name}_status({idfield.variable_name}: {idfield.type_hint}) -> {boolean_field.type_hint}:
@@ -55,6 +56,7 @@ def {table_name}_get_{boolean_field.variable_name}_status({idfield.variable_name
     return result
     '''
     return text
+
 
 # create table statement
 '''

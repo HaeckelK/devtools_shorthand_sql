@@ -5,6 +5,7 @@ import string
 class Field():
     test_default_function = lambda x: ''
     type_hint = None
+
     def __init__(self, sql_column_name, field_type):
         self.original_sql_column_name = sql_column_name
         self.sql_column_name = sql_column_name

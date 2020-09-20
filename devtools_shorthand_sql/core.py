@@ -1,8 +1,7 @@
 """Main module."""
-import argparse
 from typing import List
 
-from devtools_shorthand_sql.fields import (
+from devtools_shorthand_sql.fields import (  # noqa: F401
     Field,
     BlobField,
     IDField,
@@ -20,7 +19,7 @@ def load_instructions_file(filename: str) -> str:
     try:
         with open(filename, 'r') as f:
             contents = f.read()
-    except FileNotFoundError :
+    except FileNotFoundError:
         fatal_error(f'File does not exist {filename}.')
     return contents
 
@@ -28,13 +27,14 @@ def load_instructions_file(filename: str) -> str:
 # Generated functions
 class BaseFunction():
     function_type = None
+
     def __init__(self, name: str, text: str):
         self.name = name
         self.text = text
 
     def __str__(self):
         return self.text
-    
+
 
 class UnitTest(BaseFunction):
     function_type = 'unit_test'
@@ -49,6 +49,7 @@ class Function(BaseFunction):
 # TODO sort of dependency with templates
 class SQLBuilder():
     value_char = '?'
+
     def __init__(self, table_name: str, fields: List[Field]):
         self.table_name = table_name
         self.fields = fields
@@ -155,7 +156,7 @@ class SQLBuilder():
 
 
 class PostgresSQLBuilder(SQLBuilder):
-    value_char = '%s' 
+    value_char = '%s'
 
 
 def save_builders_to_file(builders, filename):
@@ -198,7 +199,7 @@ def main(filename: str, sql_type: str, output_filename: str):
         else:
             builder.create_insert_function_without_id()
             builder.create_insert_function_without_id_test()
-        
+
         for boolean_field in builder.boolean_fields:
             # TODO this is not generic, how to get idfield normally? may not exist.
             idfield = builder.fields[0]
@@ -210,6 +211,5 @@ def main(filename: str, sql_type: str, output_filename: str):
             # unit test
             # builder.create update False
             # unit test
-        
     save_builders_to_file(builders, output_filename)
     return
