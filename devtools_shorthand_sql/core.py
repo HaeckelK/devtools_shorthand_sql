@@ -162,13 +162,13 @@ def save_builders_to_file(builders, filename):
     with open(filename, 'w') as f:
         for builder in builders:
             f.write(f'# Table Name: {builder.table_name}')
-            f.write('\n\n# Creation Statement\n')
+            f.write('\n\n## Creation Statement\n')
             f.write(builder.creation_statement)
-            f.write('\n\n# Insert Function\n')
+            f.write('\n\n## Insert Function\n')
             f.write(str(builder.insert_function))
-            f.write('\n\n# Insert Function Unit Test\n')
+            f.write('\n\n## Insert Function Unit Test\n')
             f.write(str(builder.insert_function_test))
-            f.write('\n\n# Boolean Fields\n')
+            f.write('\n\n## Boolean Fields\n')
             for function in builder.boolean_functions:
                 f.write(str(function))
     info_message(f'Output saved to: {filename}')
