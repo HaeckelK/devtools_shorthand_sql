@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from devtools_shorthand_sql.fields import (  # noqa: F401
     Field,
@@ -12,7 +12,7 @@ from devtools_shorthand_sql.fields import (  # noqa: F401
 from devtools_shorthand_sql.utils import fatal_error, info_message
 
 
-def map_raw_field_data_type(raw_field_data_type):
+def map_raw_field_data_type(raw_field_data_type: str) -> str:
     """
     Map a raw input field to an sql field type.
 
@@ -42,7 +42,7 @@ def map_raw_field_data_type(raw_field_data_type):
 
 
 # TODO rename
-def get_field(field_name, field_data_type):
+def get_field(field_name: str, field_data_type: str) -> Field:
     mapping = {'INT': IntegerField,
                'TEXT': TextField,
                'INTEGER PRIMARY KEY': IDField,
@@ -71,12 +71,12 @@ def _split_content_into_instruction_sections(content: str) -> List[str]:
     return sections
 
 
-def _process_raw_instruction(raw_instruction: str):
+def _process_raw_instruction(raw_instruction: str) -> Dict[str, List[Field]]:
     raw_lines = raw_instruction.split('\n')
     lines = [x.strip() for x in raw_lines]
     table_name = lines[0].strip()
     raw_fields = [x.split(',') for x in lines[1:]]
-    fields = []
+    fields: List[Field] = []
     for i, raw_field in enumerate(raw_fields):
         if raw_field == ['']:
             info_message(f'Instruction line {i + 1} is blank and has been skipped.')
@@ -91,7 +91,7 @@ def _process_raw_instruction(raw_instruction: str):
 
 
 # TODO rename
-def parse_instructions_into_x(content: str):
+def parse_instructions_into_x(content: str) -> List[Dict]:
     output = []
     clean_content = _clean_raw_content(content)
     raw_instructions = _split_content_into_instruction_sections(clean_content)

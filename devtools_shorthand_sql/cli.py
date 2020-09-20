@@ -5,7 +5,7 @@ import sys
 import devtools_shorthand_sql.core as core
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('filename', type=str, help='Full path to shorthand file.')
     parser.add_argument('-o', '--output_filename', type=str, help='Full filename including path for where to save created \
@@ -15,6 +15,7 @@ def main():
                         help='RDMS style to be used for produced statements.')
     args = parser.parse_args()
     core.main(args.filename, args.sql_type, args.output_filename)
+    return 0
 
 
 if __name__ == "__main__":
