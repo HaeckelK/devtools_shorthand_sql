@@ -13,7 +13,8 @@ random.seed(1234)
 def sqlbuilder_basic():
     fields = [core.IDField('id', 'test'), core.TextField('COL2', 'test2'),
               core.IntegerField('col1', 'test')]
-    x = core.SQLBuilder('my_table', fields)
+    sql_writer = core.SQLiteWriter()
+    x = core.SQLBuilder('my_table', fields, sql_writer)
     return x
 
 
@@ -39,11 +40,11 @@ def test_base_function():
 
 def test_sql_builder_properties():
     fields = [core.IntegerField('col1', 'test'), core.TextField('COL2', 'test2')]
-    x = core.SQLBuilder('my_table', fields)
+    sql_writer = core.SQLiteWriter
+    x = core.SQLBuilder('my_table', fields, sql_writer)
     assert x.arguments == 'col1: int, col2: str'
     assert x.field_names == 'col1, COL2'
     assert x.params == 'col1, col2'
-    assert x.values == '?,?'
     assert x.function_name_stem == 'my_table'
     assert x.has_idfield is False
     assert x.kwargs == 'col1=902, col2="ED73BYDMA9"'

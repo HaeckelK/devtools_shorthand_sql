@@ -1,24 +1,22 @@
 from devtools_shorthand_sql.fields import IDField, BooleanIntField
 
 
-def insert_with_id(function_name: str, arguments: str, params: str, table_name: str, values: str,
-                   field_names: str) -> str:
+def insert_with_id(function_name: str, arguments: str, params: str, sql_statement: str) -> str:
     text = f'''
 def {function_name}({arguments}) -> int:
     params = ({params})
-    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO {table_name} ({field_names}) VALUES({values});""",
+    id = YOUR_CONNECTOR_EXECUTOR("""{sql_statement}""",
                                  params)
     return id
 '''
     return text
 
 
-def insert_without_id(function_name: str, arguments: str, params: str, table_name: str, values: str,
-                      field_names: str) -> str:
+def insert_without_id(function_name: str, arguments: str, params: str, sql_statement: str) -> str:
     text = f'''
 def {function_name}({arguments}) -> None:
     params = ({params})
-    YOUR_CONNECTOR_EXECUTOR("""INSERT INTO {table_name} ({field_names}) VALUES({values});""",
+    YOUR_CONNECTOR_EXECUTOR("""{sql_statement}""",
                             params)
     return
 '''

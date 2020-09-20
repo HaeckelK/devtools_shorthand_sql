@@ -44,16 +44,31 @@ class Function(BaseFunction):
     function_type = 'function'
 
 
+class SQLWriter():
+    value_char = '?'
+
+    def __init__(self) -> None:
+        return
+
+    def insert_statement(self, table_name: str, field_names: List[str]) -> str:
+        field_names_sql = ', '.join(field_names)
+        values = ','.join([self.value_char]*len(field_names))
+        sql = f"""INSERT INTO {table_name} ({field_names_sql}) VALUES({values});"""
+        return sql
+
+
+class SQLiteWriter(SQLWriter):
+    value_char = '?'
+
+
 # TODO this is a function builder, which has a SQL generator attached.
 # TODO some way to decide on which methods to use e.g. with it or without. Builder pattern maybe.
 # TODO sort of dependency with templates
 class SQLBuilder():
-    value_char = '?'
-
-    def __init__(self, table_name: str, fields: List[Field]):
+    def __init__(self, table_name: str, fields: List[Field], sql_writer: SQLWriter):
         self.table_name = table_name
         self.fields = fields
-
+        self.sql_writer = sql_writer
         self.creation_statement: Optional[str] = None
         self.insert_function: Optional[Function] = None
         self.insert_function_test: Optional[UnitTest] = None
@@ -72,10 +87,6 @@ class SQLBuilder():
     @property
     def params(self) -> str:
         return ', '.join([field.sql_query_param for field in self.fields])
-
-    @property
-    def values(self) -> str:
-        return ','.join([self.value_char]*len(self.fields))
 
     @property
     def function_name_stem(self) -> str:
@@ -116,18 +127,18 @@ class SQLBuilder():
 
     def create_insert_function_with_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
+        sql_statement = self.sql_writer.insert_statement(self.table_name, [field.sql_column_name for field in self.fields])
         insert_function = templates.insert_with_id(function_name, self.arguments,
-                                                   self.params, self.table_name,
-                                                   self.values, self.field_names)
+                                                   self.params, sql_statement)
         function = Function(function_name, insert_function)
         self.insert_function = function
         return function
 
     def create_insert_function_without_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
+        sql_statement = self.sql_writer.insert_statement(self.table_name, [field.sql_column_name for field in self.fields])
         insert_function = templates.insert_without_id(function_name, self.arguments,
-                                                      self.params, self.table_name,
-                                                      self.values, self.field_names)
+                                                      self.params, sql_statement)
         function = Function(function_name, insert_function)
         self.insert_function = function
         return function
@@ -155,10 +166,6 @@ class SQLBuilder():
         return function
 
 
-class PostgresSQLBuilder(SQLBuilder):
-    value_char = '%s'
-
-
 def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
     with open(filename, 'w') as f:
         for builder in builders:
@@ -178,6 +185,7 @@ def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
 
 def main(filename: str, sql_type: str, output_filename: str):
     content = load_instructions_file(filename)
+    sql_writer = SQLiteWriter()
     # TODO rename
     packet = parse_instructions_into_x(content)
     builders: List[SQLBuilder] = []
@@ -185,10 +193,7 @@ def main(filename: str, sql_type: str, output_filename: str):
         table_name = item['table_name']
         fields = item['fields']
 
-        if sql_type == 'postgres':
-            builder = PostgresSQLBuilder(table_name, fields)
-        else:
-            builder = SQLBuilder(table_name, fields)
+        builder = SQLBuilder(table_name, fields, sql_writer)
 
         builders.append(builder)
 
