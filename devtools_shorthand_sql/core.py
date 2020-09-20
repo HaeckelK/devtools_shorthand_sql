@@ -11,17 +11,8 @@ from devtools_shorthand_sql.fields import (  # noqa: F401
     BooleanIntField
 )
 import devtools_shorthand_sql.templates as templates
-from devtools_shorthand_sql.parser import parse_instructions_into_x
-from devtools_shorthand_sql.utils import fatal_error, info_message
-
-
-def load_instructions_file(filename: str) -> str:
-    try:
-        with open(filename, 'r') as f:
-            contents = f.read()
-    except FileNotFoundError:
-        fatal_error(f'File does not exist {filename}.')
-    return contents
+from devtools_shorthand_sql.parser import load_instructions_and_parse
+from devtools_shorthand_sql.utils import info_message
 
 
 # Generated functions
@@ -66,6 +57,10 @@ class SQLWriter():
 
 class SQLiteWriter(SQLWriter):
     value_char = '?'
+
+
+def get_sqlwriter(sql_type: str) -> SQLWriter:
+    return SQLiteWriter()
 
 
 # TODO this is a function builder, which has a SQL generator attached.
@@ -198,10 +193,8 @@ def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
 
 
 def main(filename: str, sql_type: str, output_filename: str):
-    content = load_instructions_file(filename)
-    sql_writer = SQLiteWriter()
-    # TODO rename
-    packet = parse_instructions_into_x(content)
+    sql_writer = get_sqlwriter(sql_type)
+    packet = load_instructions_and_parse(filename)
     builders: List[SQLBuilder] = []
     for item in packet:
         table_name = item['table_name']
@@ -223,12 +216,5 @@ def main(filename: str, sql_type: str, output_filename: str):
             # TODO this is not generic, how to get idfield normally? may not exist.
             idfield = builder.fields[0]
             builder.create_get_status_function(boolean_field, idfield)
-            # unit test
-            # builder.create update
-            # no unit test make it a private functino
-            # builder.create update true
-            # unit test
-            # builder.create update False
-            # unit test
     save_builders_to_file(builders, output_filename)
     return

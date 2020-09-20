@@ -12,6 +12,15 @@ from devtools_shorthand_sql.fields import (  # noqa: F401
 from devtools_shorthand_sql.utils import fatal_error, info_message
 
 
+def load_instructions_file(filename: str) -> str:
+    try:
+        with open(filename, 'r') as f:
+            contents = f.read()
+    except FileNotFoundError:
+        fatal_error(f'File does not exist {filename}.')
+    return contents
+
+
 def map_raw_field_data_type(raw_field_data_type: str) -> str:
     """
     Map a raw input field to an sql field type.
@@ -99,3 +108,8 @@ def parse_instructions_into_x(content: str) -> List[Dict]:
         instruction_data = _process_raw_instruction(raw_instruction)
         output.append(instruction_data)
     return output
+
+
+def load_instructions_and_parse(filename: str) -> List[Dict]:
+    content = load_instructions_file(filename)
+    return parse_instructions_into_x(content)

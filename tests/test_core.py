@@ -18,18 +18,6 @@ def sqlbuilder_basic():
     return x
 
 
-def test_load_instructions_file(tmpdir, capfd):
-    text = '123\n456'
-    filename = os.path.join(tmpdir, 'test.txt')
-    with pytest.raises(SystemExit):
-        core.load_instructions_file(filename)
-    out, err = capfd.readouterr()
-    assert out == f"Error: File does not exist {filename}.\n"
-    with open(filename, 'w') as f:
-        f.write(text)
-    assert core.load_instructions_file(filename) == text
-
-
 def test_base_function():
     name, text = 'name', 'text'
     base = core.BaseFunction(name, text)
