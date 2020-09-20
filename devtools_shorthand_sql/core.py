@@ -13,7 +13,7 @@ from devtools_shorthand_sql.fields import (
 )
 import devtools_shorthand_sql.templates as templates
 from devtools_shorthand_sql.parser import parse_instructions_into_x
-from devtools_shorthand_sql.utils import fatal_error
+from devtools_shorthand_sql.utils import fatal_error, info_message
 
 
 def load_instructions_file(filename: str) -> str:
@@ -158,10 +158,28 @@ class PostgresSQLBuilder(SQLBuilder):
     value_char = '%s' 
 
 
-def main(filename: str, sql_type: str):
+def save_builders_to_file(builders, filename):
+    with open(filename, 'w') as f:
+        for builder in builders:
+            f.write(f'# Table Name: {builder.table_name}')
+            f.write('\n\n# Creation Statement\n')
+            f.write(builder.creation_statement)
+            f.write('\n\n# Insert Function\n')
+            f.write(str(builder.insert_function))
+            f.write('\n\n# Insert Function Unit Test\n')
+            f.write(str(builder.insert_function_test))
+            f.write('\n\n# Boolean Fields\n')
+            for function in builder.boolean_functions:
+                f.write(str(function))
+    info_message(f'Output saved to: {filename}')
+    return
+
+
+def main(filename: str, sql_type: str, output_filename: str):
     content = load_instructions_file(filename)
     # TODO rename
     packet = parse_instructions_into_x(content)
+    builders = []
     for item in packet:
         table_name = item['table_name']
         fields = item['fields']
@@ -170,6 +188,8 @@ def main(filename: str, sql_type: str):
             builder = PostgresSQLBuilder(table_name, fields)
         else:
             builder = SQLBuilder(table_name, fields)
+
+        builders.append(builder)
 
         builder.create_table_statement()
         if builder.has_idfield:
@@ -191,16 +211,5 @@ def main(filename: str, sql_type: str):
             # builder.create update False
             # unit test
         
-
-        print('\n')
-        print(builder.creation_statement)
-        print('\n')
-        print(builder.insert_function)
-        print('\n')
-        print(builder.insert_function_test)
-        for function in builder.boolean_functions:
-            print('\n')
-            print(function)
-        #print('\n')
-        #print(builder.insert_function_test)
+    save_builders_to_file(builders, output_filename)
     return
