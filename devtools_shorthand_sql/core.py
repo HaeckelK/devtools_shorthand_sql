@@ -59,6 +59,10 @@ class SQLWriter():
     def select_all_from_table(self, table_name: str) -> str:
         return f'SELECT * FROM {table_name}'
 
+    def select_using_id_column(self, table_name: str, id_column_name: str) -> str:
+        sql = "SELECT {id_column_name} FROM {table_name} WHERE {id_column_name}={self.value_char};"
+        return sql
+
 
 class SQLiteWriter(SQLWriter):
     value_char = '?'
@@ -170,7 +174,8 @@ class SQLBuilder():
 
     # TODO this should just be BooleanField as type
     def create_get_status_function(self, field: BooleanIntField, idfield: IDField) -> Function:
-        function = templates.create_get_status_function(self.table_name, field, idfield)
+        sql_statement = self.sql_writer.select_using_id_column(self.table_name, idfield.sql_column_name)
+        function = templates.create_get_status_function(self.table_name, field, idfield, sql_statement)
         self.boolean_functions.append(function)
         return function
 

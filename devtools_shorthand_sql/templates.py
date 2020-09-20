@@ -46,10 +46,10 @@ def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     return text
 
 
-def create_get_status_function(table_name: str, boolean_field: BooleanIntField, idfield: IDField) -> str:
+def create_get_status_function(table_name: str, boolean_field: BooleanIntField, idfield: IDField, sql_statement: str) -> str:
     text = f'''
 def {table_name}_get_{boolean_field.variable_name}_status({idfield.variable_name}: {idfield.type_hint}) -> {boolean_field.type_hint}:
-    result = YOUR_CONNECTOR_EXECUTOR("""SELECT {idfield.sql_column_name} FROM {table_name} WHERE {idfield.sql_column_name}=?;""",
+    result = YOUR_CONNECTOR_EXECUTOR("""{sql_statement}""",
                             {idfield.sql_query_param}).fetchall()[0]
     return result
     '''
