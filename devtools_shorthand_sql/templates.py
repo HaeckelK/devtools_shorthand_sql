@@ -2,7 +2,7 @@ from devtools_shorthand_sql.fields import IDField, BooleanIntField
 
 
 def insert_with_id(function_name: str, arguments: str, params: str, table_name: str, values: str,
-                   field_names: str):
+                   field_names: str) -> str:
     text = f'''
 def {function_name}({arguments}) -> int:
     params = ({params})
@@ -14,7 +14,7 @@ def {function_name}({arguments}) -> int:
 
 
 def insert_without_id(function_name: str, arguments: str, params: str, table_name: str, values: str,
-                      field_names: str):
+                      field_names: str) -> str:
     text = f'''
 def {function_name}({arguments}) -> None:
     params = ({params})
@@ -25,7 +25,7 @@ def {function_name}({arguments}) -> None:
     return text
 
 
-def insert_with_id_test(function_name: str, expected: str, table_name: str, kwargs: str):
+def insert_with_id_test(function_name: str, expected: str, table_name: str, kwargs: str) -> str:
     text = f'''
 def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     expected = {expected}
@@ -37,7 +37,7 @@ def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     return text
 
 
-def insert_without_id_test(function_name: str, expected: str, table_name: str, kwargs: str):
+def insert_without_id_test(function_name: str, expected: str, table_name: str, kwargs: str) -> str:
     text = f'''
 def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     expected = {expected}
@@ -48,7 +48,7 @@ def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     return text
 
 
-def create_get_status_function(table_name: str, boolean_field: BooleanIntField, idfield: IDField):
+def create_get_status_function(table_name: str, boolean_field: BooleanIntField, idfield: IDField) -> str:
     text = f'''
 def {table_name}_get_{boolean_field.variable_name}_status({idfield.variable_name}: {idfield.type_hint}) -> {boolean_field.type_hint}:
     result = YOUR_CONNECTOR_EXECUTOR("""SELECT {idfield.sql_column_name} FROM {table_name} WHERE {idfield.sql_column_name}=?;""",

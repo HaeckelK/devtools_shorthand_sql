@@ -1,5 +1,5 @@
 """Main module."""
-from typing import List
+from typing import List, Optional
 
 from devtools_shorthand_sql.fields import (  # noqa: F401
     Field,
@@ -26,13 +26,13 @@ def load_instructions_file(filename: str) -> str:
 
 # Generated functions
 class BaseFunction():
-    function_type = None
+    function_type = 'base_class_none'
 
     def __init__(self, name: str, text: str):
         self.name = name
         self.text = text
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.text
 
 
@@ -54,35 +54,35 @@ class SQLBuilder():
         self.table_name = table_name
         self.fields = fields
 
-        self.creation_statement = None
-        self.insert_function = None
-        self.insert_function_test = None
+        self.creation_statement: Optional[str] = None
+        self.insert_function: Optional[Function] = None
+        self.insert_function_test: Optional[UnitTest] = None
         # boolean_functions will include function and unit test
-        self.boolean_functions = []
+        self.boolean_functions: List[Function] = []
         return
 
     @property
-    def arguments(self):
+    def arguments(self) -> str:
         return ', '.join([field.function_arg for field in self.fields if field.function_arg != ''])
 
     @property
-    def field_names(self):
+    def field_names(self) -> str:
         return ', '.join([field.sql_column_name for field in self.fields])
 
     @property
-    def params(self):
+    def params(self) -> str:
         return ', '.join([field.sql_query_param for field in self.fields])
 
     @property
-    def values(self):
+    def values(self) -> str:
         return ','.join([self.value_char]*len(self.fields))
 
     @property
-    def function_name_stem(self):
+    def function_name_stem(self) -> str:
         return self.table_name.lower()
 
     @property
-    def kwargs(self):
+    def kwargs(self) -> str:
         kwargs = []
         for field in self.fields:
             if isinstance(field, IDField):
@@ -93,7 +93,7 @@ class SQLBuilder():
         return ', '.join(kwargs)
 
     @property
-    def has_idfield(self):
+    def has_idfield(self) -> bool:
         for field in self.fields:
             if isinstance(field, IDField):
                 return True
@@ -101,7 +101,7 @@ class SQLBuilder():
 
     # TODO this needs to check a more general BooleanField
     @property
-    def boolean_fields(self):
+    def boolean_fields(self) -> List[BooleanIntField]:
         return [f for f in self.fields if isinstance(f, BooleanIntField)]
 
     def create_table_statement(self) -> str:
@@ -159,7 +159,7 @@ class PostgresSQLBuilder(SQLBuilder):
     value_char = '%s'
 
 
-def save_builders_to_file(builders, filename):
+def save_builders_to_file(builders: List[SQLBuilder], filename: str) -> None:
     with open(filename, 'w') as f:
         for builder in builders:
             f.write(f'# Table Name: {builder.table_name}')
@@ -180,7 +180,7 @@ def main(filename: str, sql_type: str, output_filename: str):
     content = load_instructions_file(filename)
     # TODO rename
     packet = parse_instructions_into_x(content)
-    builders = []
+    builders: List[SQLBuilder] = []
     for item in packet:
         table_name = item['table_name']
         fields = item['fields']

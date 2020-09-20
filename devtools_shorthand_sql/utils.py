@@ -8,10 +8,10 @@ info_message: Print message to user that is informational in content only and do
 import sys
 
 
-def fatal_error(message):
+def fatal_error(message: str) -> None:
     print('Error: ' + message)
     sys.exit()
 
 
-def info_message(message):
+def info_message(message: str) -> None:
     print('Info: ' + message)
