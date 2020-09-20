@@ -2,7 +2,7 @@
 import pytest
 import os
 
-from devtools_shorthand_sql import parser
+import devtools_shorthand_sql.instructions_parser as parser
 
 
 def test_map_raw_field_data_type():

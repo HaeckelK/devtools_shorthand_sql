@@ -11,7 +11,7 @@ from devtools_shorthand_sql.fields import (  # noqa: F401
     BooleanIntField
 )
 import devtools_shorthand_sql.templates as templates
-from devtools_shorthand_sql.parser import load_instructions_and_parse
+from devtools_shorthand_sql.instructions_parser import load_instructions_and_parse
 from devtools_shorthand_sql.utils import info_message
 
 
