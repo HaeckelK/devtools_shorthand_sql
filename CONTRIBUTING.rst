@@ -81,6 +81,7 @@ Ready to contribute? Here's how to set up `devtools_shorthand_sql` for local dev
 
     $ flake8 devtools_shorthand_sql tests
     $ python setup.py test or pytest
+    $ coverage run -m --source . pytest && coverage html
     $ mypy -p devtools_shorthand_sql --disallow-untyped-defs --disallow-incomplete-defs
 
    To get flake8 and mypy, just pip install them into your virtualenv.
