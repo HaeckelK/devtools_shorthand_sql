@@ -13,17 +13,6 @@ Aid for writing boilerplate python code for SQL work, including creation of tabl
 
 - Documentation: https://devtools-shorthand-sql.readthedocs.io.
 
-
-## Features
-
-- TODO
-
-## Requirements
-
-You need Python 3.6 or later to run devtools_shorthand_sql.
-
-No other third party packages are required.
-
 ## Quickstart
 
 Install the latest version of this software from the Python package index (PyPI):
@@ -33,11 +22,11 @@ pip install --upgrade devtools_shorthand_sql
 
 Create a shorthand sql file e.g. shorthand.txt.
 ```
-# table photo
-id id
-size int
-filename text
-date_taken int
+# photo
+id,id
+size,int
+filename,text
+date_taken,int
 ```
 
 Run
@@ -45,31 +34,44 @@ Run
 devtools_shorthand_sql shorthand.txt
 ```
 
+Notification that file created:
+```bash
+Info: Output saved to: shorthand_sql_created_functions.txt
+```
+
+Created file contains:
+
 SQL statement for table creation:
 ```SQL
 CREATE TABLE IF NOT EXISTS photo (
 id INTEGER PRIMARY KEY,
-size int,
-filename text,
-date_taken int
+size INT,
+filename TEXT,
+date_taken INT
 );
 ```
 
 Python function for data insertion:
 ```python
-def insert_photo(size: int, filename: str, date_taken: int) -> int:
-    params = (None, size, filename, date_taken)
+def insert_photo(id: int, size: int, filename: str, date_taken: int) -> int:
+    params = (id, size, filename, date_taken)
     id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (id, size, filename, date_taken) VALUES(?,?,?,?);""",
                                  params)
     return id
 ```
 
-Python function for unit testing:
+Python function for unit testing (pytest only):
 ```python
 def test_insert_photo(YOUR_CLEAN_DB_FIXTURE):
-    expected = (1, 999, '123fakestreet', 999)
-    new_id = YOUR_MODULE.insert_photo(size=999, filename="123fakestreet", date_taken=999)
+    expected = (1, 160, '3RWL0C6QSU', 374)
+    new_id = YOUR_MODULE.insert_photo(size=160, filename="3RWL0C6QSU", date_taken=374)
     result = YOUR_CONNECTOR_QUERY('SELECT * FROM photo').fetchall()[0]
     assert result == expected
     assert new_id == 1
 ```
+
+## Requirements
+
+Python 3.6 or later is required to run devtools_shorthand_sql.
+
+No other third party packages are required.
