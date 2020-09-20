@@ -23,24 +23,24 @@ def {function_name}({arguments}) -> None:
     return text
 
 
-def insert_with_id_test(function_name: str, expected: str, table_name: str, kwargs: str) -> str:
+def insert_with_id_test(function_name: str, expected: str, kwargs: str, sql_statement: str) -> str:
     text = f'''
 def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     expected = {expected}
     new_id = YOUR_MODULE.{function_name}({kwargs})
-    result = YOUR_CONNECTOR_QUERY('SELECT * FROM {table_name}').fetchall()[0]
+    result = YOUR_CONNECTOR_QUERY('{sql_statement}').fetchall()[0]
     assert result == expected
     assert new_id == 1
 '''
     return text
 
 
-def insert_without_id_test(function_name: str, expected: str, table_name: str, kwargs: str) -> str:
+def insert_without_id_test(function_name: str, expected: str, kwargs: str, sql_statement: str) -> str:
     text = f'''
 def test_{function_name}(YOUR_CLEAN_DB_FIXTURE):
     expected = {expected}
     YOUR_MODULE.{function_name}({kwargs})
-    result = YOUR_CONNECTOR_QUERY('SELECT * FROM {table_name}').fetchall()[0]
+    result = YOUR_CONNECTOR_QUERY('{sql_statement}').fetchall()[0]
     assert result == expected
 '''
     return text

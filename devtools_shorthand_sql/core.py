@@ -56,6 +56,9 @@ class SQLWriter():
         sql = f"""INSERT INTO {table_name} ({field_names_sql}) VALUES({values});"""
         return sql
 
+    def select_all_from_table(self, table_name: str) -> str:
+        return f'SELECT * FROM {table_name}'
+
 
 class SQLiteWriter(SQLWriter):
     value_char = '?'
@@ -127,7 +130,8 @@ class SQLBuilder():
 
     def create_insert_function_with_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
-        sql_statement = self.sql_writer.insert_statement(self.table_name, [field.sql_column_name for field in self.fields])
+        sql_statement = self.sql_writer.insert_statement(self.table_name,
+                                                         [field.sql_column_name for field in self.fields])
         insert_function = templates.insert_with_id(function_name, self.arguments,
                                                    self.params, sql_statement)
         function = Function(function_name, insert_function)
@@ -136,7 +140,8 @@ class SQLBuilder():
 
     def create_insert_function_without_id(self) -> Function:
         function_name = f'insert_{self.function_name_stem}'
-        sql_statement = self.sql_writer.insert_statement(self.table_name, [field.sql_column_name for field in self.fields])
+        sql_statement = self.sql_writer.insert_statement(self.table_name,
+                                                         [field.sql_column_name for field in self.fields])
         insert_function = templates.insert_without_id(function_name, self.arguments,
                                                       self.params, sql_statement)
         function = Function(function_name, insert_function)
@@ -146,7 +151,9 @@ class SQLBuilder():
     def create_insert_function_with_id_test(self) -> UnitTest:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
-        function_text = templates.insert_with_id_test(function_name, expected, self.table_name, self.kwargs)
+        sql_statement = self.sql_writer.select_all_from_table(self.table_name)
+        function_text = templates.insert_with_id_test(function_name, expected, self.kwargs,
+                                                      sql_statement)
         function = UnitTest(function_name, function_text)
         self.insert_function_test = function
         return function
@@ -154,7 +161,9 @@ class SQLBuilder():
     def create_insert_function_without_id_test(self) -> UnitTest:
         function_name = f'insert_{self.function_name_stem}'
         expected = tuple(field.test_default for field in self.fields)
-        function_text = templates.insert_without_id_test(function_name, expected, self.table_name, self.kwargs)
+        sql_statement = self.sql_writer.select_all_from_table(self.table_name)
+        function_text = templates.insert_without_id_test(function_name, expected, self.kwargs,
+                                                         sql_statement)
         function = UnitTest(function_name, function_text)
         self.insert_function_test = function
         return function
