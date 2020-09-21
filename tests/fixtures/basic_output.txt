@@ -3,7 +3,7 @@
 ## Creation Statement
 CREATE TABLE IF NOT EXISTS photo (
 id INTEGER PRIMARY KEY,
-size INT,
+SIZE INT,
 filename TEXT,
 date_taken INT
 );
@@ -12,7 +12,7 @@ date_taken INT
 
 def insert_photo(id: int, size: int, filename: str, date_taken: int) -> int:
     params = (id, size, filename, date_taken)
-    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (id, size, filename, date_taken) VALUES(?,?,?,?);""",
+    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (id, SIZE, filename, date_taken) VALUES(?,?,?,?);""",
                                  params)
     return id
 

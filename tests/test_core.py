@@ -87,7 +87,7 @@ def test_insert_my_table(YOUR_CLEAN_DB_FIXTURE):
 [
 ("""# photo
 id,id
-size,int
+SIZE,int
 filename,text
 date_taken,int""", 'none', 'basic_output.txt'),
 ("""# photo
