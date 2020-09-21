@@ -83,16 +83,19 @@ def test_insert_my_table(YOUR_CLEAN_DB_FIXTURE):
     assert result.text == expected
 
 
-def test_main_pass(tmpdir):
-    expected = os.path.join('tests', 'fixtures', 'basic_output.txt')
-    filename = os.path.join(tmpdir, 'shorthand.txt')
-    source = """# photo
+@pytest.mark.parametrize("source,sql_column_name_format,fixture_file",
+[
+("""# photo
 id,id
 size,int
 filename,text
-date_taken,int"""
+date_taken,int""", 'none', 'basic_output.txt')
+])
+def test_main_pass(tmpdir, source, sql_column_name_format, fixture_file):
+    expected = os.path.join('tests', 'fixtures', fixture_file)
+    filename = os.path.join(tmpdir, 'shorthand.txt')
     with open(filename, 'w') as f:
         f.write(source)
     output_filename = os.path.join(tmpdir, 'output.txt')
-    core.main(filename, 'sqlite', output_filename)
+    core.main(filename, 'sqlite', output_filename, sql_column_name_format)
     assert filecmp.cmp(expected, output_filename)
