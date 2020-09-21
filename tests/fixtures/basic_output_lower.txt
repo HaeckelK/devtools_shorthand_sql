@@ -3,7 +3,7 @@
 ## Creation Statement
 CREATE TABLE IF NOT EXISTS photo (
 id INTEGER PRIMARY KEY,
-SIZE INT,
+size INT,
 filename TEXT,
 date_taken INT
 );
@@ -12,7 +12,7 @@ date_taken INT
 
 def insert_photo(id: int, size: int, filename: str, date_taken: int) -> int:
     params = (id, size, filename, date_taken)
-    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (id, SIZE, filename, date_taken) VALUES(?,?,?,?);""",
+    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO photo (id, size, filename, date_taken) VALUES(?,?,?,?);""",
                                  params)
     return id
 
@@ -20,8 +20,8 @@ def insert_photo(id: int, size: int, filename: str, date_taken: int) -> int:
 ## Insert Function Unit Test
 
 def test_insert_photo(YOUR_CLEAN_DB_FIXTURE):
-    expected = (1, 928, '5X7CMZXGCR', 154)
-    new_id = YOUR_MODULE.insert_photo(size=928, filename="5X7CMZXGCR", date_taken=154)
+    expected = (1, 614, '8F4BNMM3R2', 964)
+    new_id = YOUR_MODULE.insert_photo(size=614, filename="8F4BNMM3R2", date_taken=964)
     result = YOUR_CONNECTOR_QUERY('SELECT * FROM photo').fetchall()[0]
     assert result == expected
     assert new_id == 1

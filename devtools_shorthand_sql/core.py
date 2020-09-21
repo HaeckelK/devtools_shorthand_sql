@@ -1,5 +1,5 @@
 """Main module."""
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 from devtools_shorthand_sql.fields import (  # noqa: F401
     Field,
@@ -172,6 +172,16 @@ class FunctionBuilder():
         self.boolean_functions.append(function)
         return function
 
+    def format_sql_names(self, sql_name_formatter: Callable) -> None:
+        self._format_sql_column_names(sql_name_formatter)
+        self.table_name = sql_name_formatter(self.table_name)
+        return
+
+    def _format_sql_column_names(self, sql_name_formatter: Callable) -> None:
+        for field in self.fields:
+            field.sql_column_name = sql_name_formatter(field.sql_column_name)
+        return
+
 
 def save_builders_to_file(builders: List[FunctionBuilder], filename: str) -> None:
     with open(filename, 'w') as f:
@@ -190,15 +200,25 @@ def save_builders_to_file(builders: List[FunctionBuilder], filename: str) -> Non
     return
 
 
-def main(filename: str, sql_type: str, output_filename: str):
+def get_sql_name_formatter(sql_name_format: str):
+    funcs = {'none': lambda x: x,
+             'lower': lambda x: x.lower(),
+             'upper': lambda x: x.upper(),
+             'proper': lambda x: x.title()}
+    return funcs[sql_name_format]
+
+
+def main(filename: str, sql_type: str, output_filename: str, sql_name_format: str):
     builders: List[FunctionBuilder] = []
     sql_writer = get_sqlwriter(sql_type)()
+    sql_name_formatter = get_sql_name_formatter(sql_name_format)
     table_structures = load_instructions_and_parse(filename)
     for table_structure in table_structures:
         table_name = table_structure['table_name']
         fields = table_structure['fields']
 
         builder = FunctionBuilder(table_name, fields, sql_writer)
+        builder.format_sql_names(sql_name_formatter)
 
         builder.create_table_statement()
         if builder.has_idfield:
