@@ -1,0 +1,30 @@
+# Table Name: Photo
+
+## Creation Statement
+CREATE TABLE IF NOT EXISTS Photo (
+Id INTEGER PRIMARY KEY,
+Size INT,
+Filename TEXT,
+Date_Taken INT
+);
+
+## Insert Function
+
+def insert_photo(id: int, size: int, filename: str, date_taken: int) -> int:
+    params = (id, size, filename, date_taken)
+    id = YOUR_CONNECTOR_EXECUTOR("""INSERT INTO Photo (Id, Size, Filename, Date_Taken) VALUES(?,?,?,?);""",
+                                 params)
+    return id
+
+
+## Insert Function Unit Test
+
+def test_insert_photo(YOUR_CLEAN_DB_FIXTURE):
+    expected = (1, 348, 'P23KEGPET3', 993)
+    new_id = YOUR_MODULE.insert_photo(size=348, filename="P23KEGPET3", date_taken=993)
+    result = YOUR_CONNECTOR_QUERY('SELECT * FROM Photo').fetchall()[0]
+    assert result == expected
+    assert new_id == 1
+
+
+## Boolean Fields

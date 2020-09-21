@@ -85,16 +85,30 @@ def test_insert_my_table(YOUR_CLEAN_DB_FIXTURE):
 
 @pytest.mark.parametrize("source,sql_column_name_format,fixture_file",
 [
+# Show none leaves sql columns unchange
 ("""# photo
 id,id
 SIZE,int
 filename,text
 date_taken,int""", 'none', 'basic_output.txt'),
+# Show upper makes sql columns upper
 ("""# photo
 id,id
 size,int
 filename,text
 date_taken,int""", 'upper', 'basic_output_upper.txt'),
+# Show lower makes sql columns lower
+("""# photo
+ID,id
+SIZE,int
+FILENAME,text
+DATE_TAKEN,int""", 'lower', 'basic_output_lower.txt'),
+# Show proper makes sql columns proper
+("""# photo
+ID,id
+SIZE,int
+FILENAME,text
+DATE_TAKEN,int""", 'proper', 'basic_output_proper.txt'),
 ])
 def test_main_pass(tmpdir, source, sql_column_name_format, fixture_file):
     expected = os.path.join('tests', 'fixtures', fixture_file)
@@ -103,5 +117,8 @@ def test_main_pass(tmpdir, source, sql_column_name_format, fixture_file):
         f.write(source)
     output_filename = os.path.join(tmpdir, 'output.txt')
     core.main(filename, 'sqlite', output_filename, sql_column_name_format)
+    if not filecmp.cmp(expected, output_filename):
+        import shutil
+        shutil.copy(output_filename, 'test_result.txt')
     assert filecmp.cmp(expected, output_filename)
     
