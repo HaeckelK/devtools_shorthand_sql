@@ -89,7 +89,12 @@ def test_insert_my_table(YOUR_CLEAN_DB_FIXTURE):
 id,id
 size,int
 filename,text
-date_taken,int""", 'none', 'basic_output.txt')
+date_taken,int""", 'none', 'basic_output.txt'),
+("""# photo
+id,id
+size,int
+filename,text
+date_taken,int""", 'upper', 'basic_output_upper.txt'),
 ])
 def test_main_pass(tmpdir, source, sql_column_name_format, fixture_file):
     expected = os.path.join('tests', 'fixtures', fixture_file)
@@ -99,3 +104,4 @@ def test_main_pass(tmpdir, source, sql_column_name_format, fixture_file):
     output_filename = os.path.join(tmpdir, 'output.txt')
     core.main(filename, 'sqlite', output_filename, sql_column_name_format)
     assert filecmp.cmp(expected, output_filename)
+    

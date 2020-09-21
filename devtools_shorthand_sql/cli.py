@@ -13,6 +13,9 @@ def main() -> int:
     parser.add_argument('--sql_type', choices=['sqlite', 'postgres'],
                         default='sqlite',
                         help='RDMS style to be used for produced statements.')
+    parser.add_argument('--sql_column_name_format', choices=['none', 'upper', 'lower', 'proper'],
+                        default='none',
+                        help='Format operation to apply to sql column names.')
     args = parser.parse_args()
     core.main(args.filename, args.sql_type, args.output_filename)
     return 0
