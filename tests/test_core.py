@@ -83,7 +83,7 @@ def test_insert_my_table(YOUR_CLEAN_DB_FIXTURE):
     assert result.text == expected
 
 
-@pytest.mark.parametrize("source,sql_column_name_format,fixture_file",
+@pytest.mark.parametrize("source,sql_name_format,fixture_file",
 [
 # Show none leaves sql columns unchange
 ("""# photo
@@ -110,13 +110,13 @@ SIZE,int
 FILENAME,text
 DATE_TAKEN,int""", 'proper', 'basic_output_proper.txt'),
 ])
-def test_main_pass(tmpdir, source, sql_column_name_format, fixture_file):
+def test_main_pass(tmpdir, source, sql_name_format, fixture_file):
     expected = os.path.join('tests', 'fixtures', fixture_file)
     filename = os.path.join(tmpdir, 'shorthand.txt')
     with open(filename, 'w') as f:
         f.write(source)
     output_filename = os.path.join(tmpdir, 'output.txt')
-    core.main(filename, 'sqlite', output_filename, sql_column_name_format)
+    core.main(filename, 'sqlite', output_filename, sql_name_format)
     if not filecmp.cmp(expected, output_filename):
         import shutil
         shutil.copy(output_filename, 'test_result.txt')
